@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<title>TripSplit</title>
+<meta name="description" content="Split trip expenses with friends." />
+<meta name="theme-color" content="#0f6e56" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="TripSplit" />
+<link rel="apple-touch-icon" href="data:image/png;base64,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" />
+<link rel="icon" type="image/png" href="data:image/png;base64,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" />
+<link rel="manifest" href="manifest.webmanifest" />
+<style>
+:root{--green:#0f6e56;--green-soft:#e1f5ee;--red:#a32d2d;--red-soft:#fcebeb;--text:#1c1c1a;--muted:#6b6b66;--line:#e7e6e1;--bg:#f7f6f2;--card:#fff;--radius:14px;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body,#root{height:100%;margin:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:16px;-webkit-font-smoothing:antialiased;}
+.app{max-width:480px;margin:0 auto;min-height:100%;background:var(--bg);display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);}
+.header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(14px + env(safe-area-inset-top)) 18px 12px;display:flex;align-items:center;gap:10px;}
+.header h1{font-size:20px;font-weight:600;margin:0;flex:1;}
+.header .back{font-size:22px;color:var(--muted);cursor:pointer;background:none;border:none;padding:0 4px 0 0;line-height:1;}
+.header .sub{font-size:13px;color:var(--muted);font-weight:400;display:block;margin-top:2px;}
+.content{flex:1;padding:0 16px 90px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;}
+.row{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;cursor:pointer;background:var(--card);}
+.row:last-child{border-bottom:none;}
+.row .grow{flex:1;min-width:0;}
+.row .title{font-weight:500;}
+.row .meta{font-size:13px;color:var(--muted);margin-top:2px;}
+.row .amt{font-weight:500;white-space:nowrap;}
+.pos{color:var(--green);}.neg{color:var(--red);}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600;flex-shrink:0;}
+.avatar.sm{width:28px;height:28px;font-size:12px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:500;font-family:inherit;padding:13px 18px;border-radius:var(--radius);border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;width:100%;}
+.btn.primary{background:var(--green);color:#fff;border-color:var(--green);}
+.btn.ghost{background:transparent;}
+.btn.small{width:auto;padding:8px 14px;font-size:14px;border-radius:10px;}
+.btn:active{transform:scale(0.99);}
+.btn:disabled{opacity:.5;}
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));max-width:460px;width:calc(100% - 32px);z-index:10;}
+label.fld{display:block;margin:14px 0 6px;font-size:13px;color:var(--muted);}
+.input,select.input,textarea.input{width:100%;font-size:16px;font-family:inherit;color:var(--text);padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);outline:none;}
+.input:focus{border-color:var(--green);}
+.amount-input{font-size:30px;font-weight:600;text-align:center;padding:18px 14px;}
+.two{display:flex;gap:10px;}.two>*{flex:1;}
+.tabs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:14px;}
+.tabs button{flex:1;border:none;background:none;padding:9px;font-size:14px;font-family:inherit;color:var(--muted);border-radius:9px;cursor:pointer;}
+.tabs button.active{background:var(--green-soft);color:var(--green);font-weight:500;}
+.pct-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);}
+.pct-row:last-child{border-bottom:none;}
+.pct-input{width:74px;text-align:right;}
+.pct-total{display:flex;justify-content:space-between;padding:12px 16px;font-size:14px;}
+.pct-total.bad{color:var(--red);}.pct-total.ok{color:var(--green);}
+.section{font-size:13px;color:var(--muted);margin:18px 4px 8px;text-transform:uppercase;letter-spacing:.04em;}
+.empty{text-align:center;color:var(--muted);padding:50px 24px;}
+.empty .big{font-size:17px;color:var(--text);margin-bottom:6px;}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20;display:flex;align-items:flex-end;justify-content:center;}
+.sheet{background:var(--card);width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;}
+.sheet h2{margin:0 0 4px;font-size:18px;}
+.sheet p{color:var(--muted);font-size:14px;margin:0 0 16px;}
+.banner{background:#fff7e6;border:1px solid #f3d99b;color:#6b4e0b;padding:12px 14px;border-radius:12px;font-size:14px;margin:14px 0;}
+.muted{color:var(--muted);font-size:14px;}
+.center{text-align:center;}
+.spacer{height:8px;}
+.chip{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:13px;margin:0 6px 6px 0;cursor:pointer;}
+.chip.on{background:var(--green-soft);border-color:var(--green);color:var(--green);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="text/babel" data-presets="react">
+const SUPA_URL = 'https://hisdnziwdlegxririysw.supabase.co';
+const SUPA_KEY = 'sb_publishable__pb6Mhd4LtoFtGm2rChzRg_4vJR4KKt';
+const SB = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+const { useState, useEffect, useCallback } = React;
+
+const COLORS = ['#1D9E75','#378ADD','#D4537E','#BA7517','#7F77DD','#D85A30','#639922','#0F6E56'];
+const CATEGORIES = ['Food','Stay','Transport','Activities','Shopping','Other'];
+
+const KNOWN = 'tripsplit.trips';
+const getKnown = () => { try { return JSON.parse(localStorage.getItem(KNOWN) || '[]'); } catch { return []; } };
+const addKnown = (id) => { const s = new Set(getKnown()); s.add(id); localStorage.setItem(KNOWN, JSON.stringify([...s])); };
+const removeKnown = (id) => { localStorage.setItem(KNOWN, JSON.stringify(getKnown().filter(x => x !== id))); };
+const getMe = (t) => localStorage.getItem('tripsplit.me.' + t) || '';
+const setMe = (t, m) => localStorage.setItem('tripsplit.me.' + t, m);
+const initials = (name) => (name || '?').trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase();
+
+function computeBalances(members, expenses, settlements){
+  const net = {}; members.forEach(m => net[m.id] = 0);
+  expenses.forEach(e => { const a = Number(e.amount)||0; if(net[e.paid_by]!==undefined) net[e.paid_by]+=a; members.forEach(m => { net[m.id]-= a*(Number(m.percent)||0)/100; }); });
+  settlements.forEach(s => { const a = Number(s.amount)||0; if(net[s.from_member]!==undefined) net[s.from_member]+=a; if(net[s.to_member]!==undefined) net[s.to_member]-=a; });
+  Object.keys(net).forEach(k => net[k] = Math.round(net[k]*100)/100);
+  return net;
+}
+function simplifyDebts(net){
+  const cr=[],de=[]; Object.entries(net).forEach(([id,v]) => { if(v>0.005) cr.push({id,amount:v}); else if(v<-0.005) de.push({id,amount:-v}); });
+  cr.sort((a,b)=>b.amount-a.amount); de.sort((a,b)=>b.amount-a.amount);
+  const tr=[]; let i=0,j=0;
+  while(i<de.length && j<cr.length){ const pay=Math.min(de[i].amount,cr[j].amount); tr.push({from:de[i].id,to:cr[j].id,amount:Math.round(pay*100)/100}); de[i].amount-=pay; cr[j].amount-=pay; if(de[i].amount<0.005)i++; if(cr[j].amount<0.005)j++; }
+  return tr;
+}
+function formatMoney(amount, currency='EGP'){
+  const n=(Math.round((Number(amount)||0)*100)/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  return currency + ' ' + n;
+}
+function fmtDate(d){ try { return new Date(d + 'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'}); } catch { return d; } }
+function parseHash(){ const m=(window.location.hash||'').match(/^#\/trip\/([0-9a-f-]+)/i); return m?{name:'trip',id:m[1]}:{name:'home'}; }
+const goTrip = (id) => { window.location.hash = '#/trip/' + id; };
+const goHome = () => { window.location.hash = ''; };
+const shareLink = (id) => window.location.origin + window.location.pathname + '#/trip/' + id;
+
+function App(){
+  const [route,setRoute]=useState(parseHash());
+  useEffect(()=>{ const f=()=>setRoute(parseHash()); window.addEventListener('hashchange',f); return ()=>window.removeEventListener('hashchange',f); },[]);
+  if(route.name==='trip') return <TripScreen tripId={route.id} key={route.id} />;
+  return <HomeScreen />;
+}
+
+function HomeScreen(){
+  const [trips,setTrips]=useState([]); const [loading,setLoading]=useState(true);
+  const [showNew,setShowNew]=useState(false); const [showJoin,setShowJoin]=useState(false);
+  const load=useCallback(async()=>{
+    setLoading(true); const ids=getKnown();
+    if(ids.length===0){ setTrips([]); setLoading(false); return; }
+    const { data:tripRows }=await SB.from('trips').select('*').in('id',ids);
+    const out=[];
+    for(const t of (tripRows||[])){
+      const [{data:members},{data:expenses},{data:settlements}]=await Promise.all([
+        SB.from('members').select('*').eq('trip_id',t.id),
+        SB.from('expenses').select('*').eq('trip_id',t.id),
+        SB.from('settlements').select('*').eq('trip_id',t.id),
+      ]);
+      const net=computeBalances(members||[],expenses||[],settlements||[]); const me=getMe(t.id);
+      out.push({...t,memberCount:(members||[]).length,expenseCount:(expenses||[]).length,myNet:me?(net[me]||0):null});
+    }
+    out.sort((a,b)=>ids.indexOf(b.id)-ids.indexOf(a.id));
+    setTrips(out); setLoading(false);
+  },[]);
+  useEffect(()=>{ load(); },[load]);
+  return (
+    <div className="app">
+      <div className="header"><h1>My trips</h1><button className="btn small" onClick={()=>setShowJoin(true)}>Join</button></div>
+      <div className="content">
+        {loading && <p className="muted center" style={{marginTop:30}}>Loading…</p>}
+        {!loading && trips.length===0 && <div className="empty"><div className="big">No trips yet</div><div>Create a trip, add your friends, then start logging expenses.</div></div>}
+        {!loading && trips.length>0 && <div className="card">
+          {trips.map(t => (
+            <div className="row" key={t.id} onClick={()=>goTrip(t.id)}>
+              <div className="grow"><div className="title">{t.name}</div><div className="meta">{t.memberCount} members · {t.expenseCount} expenses</div></div>
+              {t.myNet!==null && Math.abs(t.myNet)>0.005 && <div className={'amt '+(t.myNet>0?'pos':'neg')}>{t.myNet>0?'you are owed ':'you owe '}{formatMoney(Math.abs(t.myNet),t.currency)}</div>}
+            </div>
+          ))}
+        </div>}
+        <button className="btn primary" onClick={()=>setShowNew(true)} style={{marginTop:6}}>+ New trip</button>
+      </div>
+      {showNew && <NewTripSheet onClose={()=>setShowNew(false)} onCreated={(id)=>{addKnown(id);goTrip(id);}} />}
+      {showJoin && <JoinSheet onClose={()=>setShowJoin(false)} onJoined={(id)=>{addKnown(id);goTrip(id);}} />}
+    </div>
+  );
+}
+
+function NewTripSheet({onClose,onCreated}){
+  const [name,setName]=useState(''); const [currency,setCurrency]=useState('EGP'); const [busy,setBusy]=useState(false);
+  const create=async()=>{ if(!name.trim())return; setBusy(true);
+    const {data,error}=await SB.from('trips').insert({name:name.trim(),currency:currency.trim()||'EGP'}).select().single();
+    setBusy(false); if(error){alert('Could not create trip: '+error.message);return;} onCreated(data.id); };
+  return (<Sheet onClose={onClose} title="New trip" subtitle="Give it a name. You'll add members next.">
+    <label className="fld">Trip name</label>
+    <input className="input" autoFocus value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Greece 2026" />
+    <label className="fld">Currency</label>
+    <input className="input" value={currency} onChange={e=>setCurrency(e.target.value)} placeholder="EGP" />
+    <div className="spacer" />
+    <button className="btn primary" disabled={busy||!name.trim()} onClick={create}>{busy?'Creating…':'Create trip'}</button>
+  </Sheet>);
+}
+
+function JoinSheet({onClose,onJoined}){
+  const [code,setCode]=useState(''); const [busy,setBusy]=useState(false);
+  const join=async()=>{ const c=code.trim().toUpperCase(); if(!c)return; setBusy(true);
+    const {data}=await SB.from('trips').select('id').eq('join_code',c).maybeSingle();
+    setBusy(false); if(!data){alert('No trip found with that code.');return;} onJoined(data.id); };
+  return (<Sheet onClose={onClose} title="Join a trip" subtitle="Enter the 6-character code a friend shared.">
+    <input className="input" autoFocus value={code} onChange={e=>setCode(e.target.value.toUpperCase())} placeholder="ABC123" maxLength={6} style={{textTransform:'uppercase',letterSpacing:'2px',textAlign:'center',fontSize:22}} />
+    <div className="spacer" />
+    <button className="btn primary" disabled={busy||!code.trim()} onClick={join}>{busy?'Joining…':'Join trip'}</button>
+  </Sheet>);
+}
+
+function TripScreen({tripId}){
+  const [trip,setTrip]=useState(null);const [members,setMembers]=useState([]);const [expenses,setExpenses]=useState([]);const [settlements,setSettlements]=useState([]);
+  const [tab,setTab]=useState('balances');const [loading,setLoading]=useState(true);const [showAdd,setShowAdd]=useState(false);const [showShare,setShowShare]=useState(false);const [notFound,setNotFound]=useState(false);
+  const load=useCallback(async()=>{
+    const {data:t}=await SB.from('trips').select('*').eq('id',tripId).maybeSingle();
+    if(!t){setNotFound(true);setLoading(false);return;}
+    addKnown(tripId);
+    const [{data:m},{data:e},{data:s}]=await Promise.all([
+      SB.from('members').select('*').eq('trip_id',tripId).order('created_at'),
+      SB.from('expenses').select('*').eq('trip_id',tripId).order('spent_on',{ascending:false}).order('created_at',{ascending:false}),
+      SB.from('settlements').select('*').eq('trip_id',tripId),
+    ]);
+    setTrip(t);setMembers(m||[]);setExpenses(e||[]);setSettlements(s||[]);setLoading(false);
+  },[tripId]);
+  useEffect(()=>{load();},[load]);
+  useEffect(()=>{
+    const ch=SB.channel('trip-'+tripId)
+      .on('postgres_changes',{event:'*',schema:'public',table:'expenses',filter:'trip_id=eq.'+tripId},load)
+      .on('postgres_changes',{event:'*',schema:'public',table:'members',filter:'trip_id=eq.'+tripId},load)
+      .on('postgres_changes',{event:'*',schema:'public',table:'settlements',filter:'trip_id=eq.'+tripId},load)
+      .subscribe();
+    return ()=>{SB.removeChannel(ch);};
+  },[tripId,load]);
+  if(loading) return <div className="app"><div className="header"><button className="back" onClick={goHome}>‹</button><h1>Trip</h1></div><p className="muted center" style={{marginTop:40}}>Loading…</p></div>;
+  if(notFound) return <div className="app"><div className="header"><button className="back" onClick={goHome}>‹</button><h1>Trip</h1></div><div className="empty"><div className="big">Trip not found</div><div>The link or code may be wrong.</div></div></div>;
+  const total=expenses.reduce((s,e)=>s+Number(e.amount),0); const cur=trip.currency||'EGP'; const me=getMe(tripId);
+  return (
+    <div className="app">
+      <div className="header">
+        <button className="back" onClick={goHome}>‹</button>
+        <div className="grow"><h1 style={{fontSize:19}}>{trip.name}</h1><span className="sub">Total {formatMoney(total,cur)} · {members.length} members</span></div>
+        <button className="btn small" onClick={()=>setShowShare(true)}>Share</button>
+      </div>
+      <div className="content">
+        {!me && members.length>0 && <WhoAmI members={members} tripId={tripId} onPick={load} />}
+        <div className="tabs">
+          <button className={tab==='balances'?'active':''} onClick={()=>setTab('balances')}>Balances</button>
+          <button className={tab==='expenses'?'active':''} onClick={()=>setTab('expenses')}>Expenses</button>
+          <button className={tab==='members'?'active':''} onClick={()=>setTab('members')}>Members</button>
+        </div>
+        {tab==='balances' && <BalancesTab trip={trip} members={members} expenses={expenses} settlements={settlements} onChange={load} />}
+        {tab==='expenses' && <ExpensesTab trip={trip} members={members} expenses={expenses} onChange={load} />}
+        {tab==='members' && <MembersTab trip={trip} members={members} onChange={load} />}
+      </div>
+      {members.length>0 && tab!=='members' && <button className="btn primary fab" onClick={()=>setShowAdd(true)}>+ Add expense</button>}
+      {showAdd && <AddExpenseSheet trip={trip} members={members} onClose={()=>setShowAdd(false)} onSaved={()=>{setShowAdd(false);load();}} />}
+      {showShare && <ShareSheet trip={trip} onClose={()=>setShowShare(false)} />}
+    </div>
+  );
+}
+
+function WhoAmI({members,tripId,onPick}){
+  return (<div className="banner">Which member are you on this phone?
+    <div style={{marginTop:8}}>{members.map(m=><span key={m.id} className="chip" onClick={()=>{setMe(tripId,m.id);onPick();}}>{m.name}</span>)}</div>
+  </div>);
+}
+
+function BalancesTab({trip,members,expenses,settlements,onChange}){
+  const cur=trip.currency||'EGP'; const net=computeBalances(members,expenses,settlements); const transfers=simplifyDebts(net);
+  const nameOf=(id)=>(members.find(m=>m.id===id)||{}).name||'?'; const me=getMe(trip.id);
+  const settle=async(t)=>{ if(!confirm('Mark '+nameOf(t.from)+' → '+nameOf(t.to)+' '+formatMoney(t.amount,cur)+' as paid?'))return;
+    const {error}=await SB.from('settlements').insert({trip_id:trip.id,from_member:t.from,to_member:t.to,amount:t.amount});
+    if(error){alert(error.message);return;} onChange(); };
+  if(members.length===0) return <div className="empty"><div className="big">No members yet</div><div>Add members in the Members tab first.</div></div>;
+  return (<React.Fragment>
+    <div className="section">Who owes whom</div>
+    {transfers.length===0
+      ? <div className="card"><div className="row" style={{cursor:'default'}}><div className="grow"><div className="title">All settled up 🎉</div><div className="meta">No outstanding balances.</div></div></div></div>
+      : <div className="card">{transfers.map((t,i)=>(
+          <div className="row" key={i} style={{cursor:'default'}}>
+            <div className="grow"><div className="title">{nameOf(t.from)} <span className="muted">→</span> {nameOf(t.to)}</div></div>
+            <div className="amt pos">{formatMoney(t.amount,cur)}</div>
+            <button className="btn small" onClick={()=>settle(t)}>Settle</button>
+          </div>))}
+        </div>}
+    <div className="section">Net per person</div>
+    <div className="card">{members.map(m=>{ const v=net[m.id]||0; return (
+      <div className="row" key={m.id} style={{cursor:'default'}}>
+        <div className="avatar sm" style={{background:m.color}}>{initials(m.name)}</div>
+        <div className="grow"><div className="title">{m.name}{m.id===me?' (you)':''}</div><div className="meta">{Number(m.percent)}% share</div></div>
+        <div className={'amt '+(Math.abs(v)<0.005?'muted':v>0?'pos':'neg')}>{Math.abs(v)<0.005?'settled':(v>0?'+':'−')+formatMoney(Math.abs(v),cur)}</div>
+      </div>); })}
+    </div>
+  </React.Fragment>);
+}
+
+function ExpensesTab({trip,members,expenses,onChange}){
+  const cur=trip.currency||'EGP'; const nameOf=(id)=>(members.find(m=>m.id===id)||{}).name||'?'; const colorOf=(id)=>(members.find(m=>m.id===id)||{}).color||'#888';
+  const del=async(id)=>{ if(!confirm('Delete this expense?'))return; await SB.from('expenses').delete().eq('id',id); onChange(); };
+  if(expenses.length===0) return <div className="empty"><div className="big">No expenses yet</div><div>Tap “Add expense” to log the first one.</div></div>;
+  return (<div className="card">
+    {expenses.map(e=>(
+      <div className="row" key={e.id} onClick={()=>del(e.id)}>
+        <div className="avatar sm" style={{background:colorOf(e.paid_by)}}>{initials(nameOf(e.paid_by))}</div>
+        <div className="grow"><div className="title">{e.description}</div><div className="meta">{nameOf(e.paid_by)} paid · {e.category?e.category+' · ':''}{fmtDate(e.spent_on)}</div></div>
+        <div className="amt">{formatMoney(e.amount,cur)}</div>
+      </div>))}
+    <div className="row" style={{cursor:'default'}}><div className="grow muted" style={{fontSize:13}}>Tap an expense to delete it.</div></div>
+  </div>);
+}
+
+function MembersTab({trip,members,onChange}){
+  const [local,setLocal]=useState(members.map(m=>({...m}))); const [newName,setNewName]=useState(''); const [busy,setBusy]=useState(false);
+  useEffect(()=>{ setLocal(members.map(m=>({...m}))); },[members]);
+  const total=local.reduce((s,m)=>s+(Number(m.percent)||0),0); const totalRounded=Math.round(total*100)/100;
+  const setPct=(id,val)=>setLocal(local.map(m=>m.id===id?{...m,percent:val}:m));
+  const splitEqually=()=>{ const n=local.length; if(n===0)return; const each=Math.floor((100/n)*100)/100; const next=local.map(m=>({...m,percent:each})); const used=each*n; next[0].percent=Math.round((each+(100-used))*100)/100; setLocal(next); };
+  const addMember=async()=>{ if(!newName.trim())return; setBusy(true); const color=COLORS[members.length%COLORS.length];
+    const {error}=await SB.from('members').insert({trip_id:trip.id,name:newName.trim(),color,percent:0}); setBusy(false);
+    if(error){alert(error.message);return;} setNewName(''); onChange(); };
+  const removeMember=async(id)=>{ if(!confirm('Remove this member? Their expenses will also be removed.'))return; await SB.from('members').delete().eq('id',id); onChange(); };
+  const savePercents=async()=>{ setBusy(true); for(const m of local){ await SB.from('members').update({percent:Number(m.percent)||0}).eq('id',m.id); } setBusy(false); onChange(); };
+  return (<React.Fragment>
+    <div className="section">Members &amp; contribution %</div>
+    <div className="card">
+      {local.length===0 && <div className="row" style={{cursor:'default'}}><div className="grow muted">No members yet. Add the first below.</div></div>}
+      {local.map(m=>(
+        <div className="pct-row" key={m.id}>
+          <div className="avatar sm" style={{background:m.color}}>{initials(m.name)}</div>
+          <div className="grow"><div className="title">{m.name}</div></div>
+          <input className="input pct-input" type="number" inputMode="decimal" min="0" max="100" value={m.percent} onChange={e=>setPct(m.id,e.target.value)} />
+          <span className="muted">%</span>
+          <button className="btn small ghost" onClick={()=>removeMember(m.id)} style={{border:'none',color:'var(--red)',padding:'4px 6px'}}>✕</button>
+        </div>))}
+      {local.length>0 && <div className={'pct-total '+(Math.abs(totalRounded-100)<0.005?'ok':'bad')}><span>Total</span><span>{totalRounded}% {Math.abs(totalRounded-100)<0.005?'✓':'(must be 100%)'}</span></div>}
+    </div>
+    {local.length>0 && <div className="two"><button className="btn" onClick={splitEqually}>Split equally</button><button className="btn primary" disabled={busy} onClick={savePercents}>{busy?'Saving…':'Save %'}</button></div>}
+    <div className="section">Add member</div>
+    <div className="two">
+      <input className="input" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name" onKeyDown={e=>e.key==='Enter'&&addMember()} />
+      <button className="btn primary" style={{flex:'0 0 90px'}} disabled={busy||!newName.trim()} onClick={addMember}>Add</button>
+    </div>
+  </React.Fragment>);
+}
+
+function AddExpenseSheet({trip,members,onClose,onSaved}){
+  const cur=trip.currency||'EGP'; const me=getMe(trip.id);
+  const [amount,setAmount]=useState(''); const [desc,setDesc]=useState(''); const [category,setCategory]=useState('');
+  const [paidBy,setPaidBy]=useState(me||(members[0]&&members[0].id)||''); const [date,setDate]=useState(new Date().toISOString().slice(0,10)); const [busy,setBusy]=useState(false);
+  const amt=Number(amount)||0;
+  const save=async()=>{ if(!amt||!desc.trim()||!paidBy)return; setBusy(true);
+    const {error}=await SB.from('expenses').insert({trip_id:trip.id,description:desc.trim(),amount:amt,category:category||null,paid_by:paidBy,spent_on:date});
+    setBusy(false); if(error){alert(error.message);return;} onSaved(); };
+  return (<Sheet onClose={onClose} title="New expense">
+    <input className="input amount-input" type="number" inputMode="decimal" autoFocus value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00" />
+    <div className="center muted" style={{marginTop:4}}>{cur}</div>
+    <label className="fld">Description</label>
+    <input className="input" value={desc} onChange={e=>setDesc(e.target.value)} placeholder="e.g. Dinner at the taverna" />
+    <label className="fld">Category (optional)</label>
+    <div>{CATEGORIES.map(c=><span key={c} className={'chip'+(category===c?' on':'')} onClick={()=>setCategory(category===c?'':c)}>{c}</span>)}</div>
+    <div className="two">
+      <div><label className="fld">Paid by</label>
+        <select className="input" value={paidBy} onChange={e=>setPaidBy(e.target.value)}>{members.map(m=><option key={m.id} value={m.id}>{m.name}{m.id===me?' (you)':''}</option>)}</select>
+      </div>
+      <div><label className="fld">Date</label><input className="input" type="date" value={date} onChange={e=>setDate(e.target.value)} /></div>
+    </div>
+    {amt>0 && <React.Fragment>
+      <label className="fld">Split by contribution %</label>
+      <div className="card" style={{marginBottom:0}}>{members.map(m=>(
+        <div className="row" key={m.id} style={{cursor:'default',padding:'10px 16px'}}>
+          <div className="grow"><span className="muted">{m.name} · {Number(m.percent)}%</span></div>
+          <div className="amt">{formatMoney(amt*(Number(m.percent)||0)/100,cur)}</div>
+        </div>))}
+      </div>
+    </React.Fragment>}
+    <div className="spacer" /><div className="spacer" />
+    <button className="btn primary" disabled={busy||!amt||!desc.trim()||!paidBy} onClick={save}>{busy?'Saving…':'Save expense'}</button>
+  </Sheet>);
+}
+
+function ShareSheet({trip,onClose}){
+  const link=shareLink(trip.id); const [copied,setCopied]=useState('');
+  const copy=async(text,what)=>{ try{ await navigator.clipboard.writeText(text); setCopied(what); setTimeout(()=>setCopied(''),1500); }catch{ prompt('Copy this:',text); } };
+  return (<Sheet onClose={onClose} title="Share this trip" subtitle="Send the link or code to your friends so they can join from their phones.">
+    <label className="fld">Join code</label>
+    <div className="card" style={{marginBottom:8}}><div className="row" style={{cursor:'default'}}>
+      <div className="grow" style={{fontSize:22,letterSpacing:3,fontWeight:600}}>{trip.join_code}</div>
+      <button className="btn small" onClick={()=>copy(trip.join_code,'code')}>{copied==='code'?'Copied':'Copy'}</button>
+    </div></div>
+    <label className="fld">Direct link</label>
+    <div className="card"><div className="row" style={{cursor:'default'}}>
+      <div className="grow muted" style={{fontSize:13,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</div>
+      <button className="btn small" onClick={()=>copy(link,'link')}>{copied==='link'?'Copied':'Copy'}</button>
+    </div></div>
+    <div className="spacer" />
+    <button className="btn ghost" onClick={()=>{removeKnown(trip.id);goHome();}} style={{color:'var(--red)'}}>Remove this trip from my phone</button>
+  </Sheet>);
+}
+
+function Sheet({title,subtitle,children,onClose}){
+  return (<div className="sheet-bg" onClick={onClose}><div className="sheet" onClick={e=>e.stopPropagation()}><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}{children}</div></div>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+</script>
+</body>
+</html>
