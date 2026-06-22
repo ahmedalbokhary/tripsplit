@@ -294,8 +294,8 @@ function HomeScreen(){
 function NewTripSheet({onClose,onCreated}){
   const [name,setName]=useState('');const [currency,setCurrency]=useState('EGP');const [busy,setBusy]=useState(false);
   const create=async()=>{if(!name.trim())return;setBusy(true);
-    const {data,error}=await SB.from('trips').insert({name:name.trim(),currency:currency.trim()||'EGP'}).select().single();
-    setBusy(false);if(error){alert('Could not create trip: '+error.message);return;}onCreated(data.id);};
+    const {data,error}=await SB.rpc('create_trip',{p_name:name.trim(),p_currency:currency.trim()||'EGP'});
+    setBusy(false);if(error||!data){alert('Could not create trip: '+((error&&error.message)||'unknown error'));return;}onCreated(data.id);};
   return (<Sheet onClose={onClose} title="New trip" sub="Give it a name. You'll add members next.">
     <label className="fld">Trip name</label>
     <input className="input" autoFocus value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Greece 2026" maxLength={40}/>
