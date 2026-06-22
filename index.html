@@ -151,6 +151,7 @@ svg.ic.sm{width:17px;height:17px;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script type="text/babel" data-presets="react">
 const SUPA_URL = 'https://hisdnziwdlegxririysw.supabase.co';
 const SUPA_KEY = 'sb_publishable__pb6Mhd4LtoFtGm2rChzRg_4vJR4KKt';
@@ -219,7 +220,8 @@ const I={
   bed:['M2 8v12','M2 14h20v6','M22 14v-3a3 3 0 00-3-3H8v6','M6 11h.01'], car:['M5 13l2-5h10l2 5','M3 13h18v5H3z','M6 18v2M18 18v2','M7 16h.01M17 16h.01'],
   ticket:['M3 9a3 3 0 010 6v3h18v-3a3 3 0 010-6V6H3z','M9 6v12'], bag:['M6 7h12l1 14H5z','M9 7a3 3 0 016 0'], tag:['M20 12l-8 8-8-8V4h8z','M9 9h.01'],
   dots:'M5 12h.01M12 12h.01M19 12h.01', x:'M18 6L6 18M6 6l12 12', copy:['M9 9h11v11H9z','M5 15V4h11'],
-  chart:['M4 20V11','M10 20V5','M16 20v-8','M2 20h20']
+  chart:['M4 20V11','M10 20V5','M16 20v-8','M2 20h20'],
+  download:['M12 3v12','M7 10l5 5 5-5','M5 21h14']
 };
 const CAT={Food:{i:I.utensils,c:'#f59e0b'},Stay:{i:I.bed,c:'#8b5cf6'},Transport:{i:I.car,c:'#0ea5e9'},Activities:{i:I.ticket,c:'#ec4899'},Shopping:{i:I.bag,c:'#14b8a6'},Other:{i:I.tag,c:'#667a72'}};
 
@@ -353,7 +355,7 @@ function TripScreen({tripId}){
         {tab==='balances' && <BalancesTab trip={trip} members={members} expenses={expenses} settlements={settlements} onChange={load}/>}
         {tab==='expenses' && <ExpensesTab trip={trip} members={members} expenses={expenses} onEdit={setEditExp}/>}
         {tab==='members' && <MembersTab trip={trip} members={members} onChange={load}/>}
-        {tab==='summary' && <SummaryTab trip={trip} members={members} expenses={expenses}/>}
+        {tab==='summary' && <SummaryTab trip={trip} members={members} expenses={expenses} settlements={settlements}/>}
       </div>
 
       <div className="tabbar">
@@ -444,7 +446,38 @@ function ExpensesTab({trip,members,expenses,onEdit}){
   </div>);
 }
 
-function SummaryTab({trip,members,expenses}){
+function exportSummaryExcel(trip,members,expenses,settlements){
+  if(!window.XLSX){alert('Excel library still loading — please try again in a second.');return;}
+  const cur=trip.currency||'EGP';
+  const net=computeBalances(members,expenses,settlements);
+  const transfers=simplifyDebts(net);
+  const nameOf=(id)=>(members.find(m=>m.id===id)||{}).name||'?';
+  const total=expenses.reduce((s,e)=>s+Number(e.amount),0);
+  const sum=[['Bokha tripsplit'],[trip.name]];
+  if(trip.start_date&&trip.end_date)sum.push(['Dates',trip.start_date+' to '+trip.end_date]);
+  sum.push(['Report date',new Date().toISOString().slice(0,10)]);
+  sum.push(['Currency',cur]);
+  sum.push(['Total spent',Math.round(total*100)/100]);
+  sum.push([]);
+  sum.push(['Members & balances']);
+  sum.push(['Member','Share %','Net balance']);
+  members.forEach(m=>{const v=net[m.id]||0;sum.push([m.name,Number(m.percent)||0,Math.abs(v)<0.005?'settled':((v<0?'owes ':'is owed ')+formatMoney(Math.abs(v),cur))]);});
+  sum.push([]);
+  sum.push(['Who owes whom']);
+  if(transfers.length)transfers.forEach(t=>sum.push([nameOf(t.from)+' → '+nameOf(t.to),Math.round(t.amount*100)/100]));
+  else sum.push(['All settled up']);
+  const wb=window.XLSX.utils.book_new();
+  const ws1=window.XLSX.utils.aoa_to_sheet(sum);ws1['!cols']=[{wch:28},{wch:14},{wch:22}];
+  window.XLSX.utils.book_append_sheet(wb,ws1,'Summary');
+  const exp=[['Date','Description','Category','Paid by','Amount ('+cur+')']];
+  expenses.forEach(e=>exp.push([e.spent_on,e.description,e.category||'',nameOf(e.paid_by),Math.round(Number(e.amount)*100)/100]));
+  const ws2=window.XLSX.utils.aoa_to_sheet(exp);ws2['!cols']=[{wch:12},{wch:30},{wch:14},{wch:16},{wch:14}];
+  window.XLSX.utils.book_append_sheet(wb,ws2,'Expenses');
+  const fn=trip.name.replace(/[^a-z0-9]+/gi,'_')+'_summary_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  window.XLSX.writeFile(wb,fn);
+}
+
+function SummaryTab({trip,members,expenses,settlements}){
   const cur=trip.currency||'EGP';
   const total=expenses.reduce((s,e)=>s+Number(e.amount),0);
   if(expenses.length===0)return <div className="empty"><div className="eicon"><Ic d={I.chart}/></div><div className="big">No data yet</div><div className="sub">Add some expenses to see your trip summary.</div></div>;
@@ -452,6 +485,7 @@ function SummaryTab({trip,members,expenses}){
   const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   const byPayer={};members.forEach(m=>byPayer[m.id]=0);expenses.forEach(e=>{if(byPayer[e.paid_by]!==undefined)byPayer[e.paid_by]+=Number(e.amount);});
   return (<React.Fragment>
+    <button className="btn primary" onClick={()=>exportSummaryExcel(trip,members,expenses,settlements)}><Ic d={I.download}/> Download Excel summary</button>
     <div className="section"><Ic d={I.chart} sm/> Spending by category</div>
     <div className="card" style={{padding:'4px 0'}}>
       {cats.map(([c,amt])=>{const cat=CAT[c]||CAT.Other;const pct=total?Math.round(amt/total*100):0;return (
