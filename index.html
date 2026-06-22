@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="color-scheme" content="light" />
+<meta property="og:title" content="Bokha tripsplit" />
+<meta property="og:description" content="Split trip expenses with friends." />
+<meta property="og:type" content="website" />
 <title>Bokha tripsplit</title>
 <meta name="description" content="Split trip expenses with friends — Bokha tripsplit." />
 <meta name="theme-color" content="#0b7a57" />
@@ -150,27 +154,13 @@ svg.ic.sm{width:17px;height:17px;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script type="text/babel" data-presets="react">
 const SUPA_URL = 'https://hisdnziwdlegxririysw.supabase.co';
 const SUPA_KEY = 'sb_publishable__pb6Mhd4LtoFtGm2rChzRg_4vJR4KKt';
 const SB = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// === Email notifications (EmailJS) — fill to enable ===
-const EMAILJS = { publicKey: '', serviceId: '', templateId: '' };
-const emailReady = () => EMAILJS.publicKey && EMAILJS.serviceId && EMAILJS.templateId && window.emailjs;
-if (EMAILJS.publicKey && window.emailjs) { try { window.emailjs.init({ publicKey: EMAILJS.publicKey }); } catch(e){} }
-async function notifyExpense(trip, members, expense, payerName){
-  if (!emailReady()) return;
-  const recips = members.filter(m => m.email && m.id !== expense.paid_by);
-  for (const m of recips){
-    try { await window.emailjs.send(EMAILJS.serviceId, EMAILJS.templateId, {
-      to_email:m.email,to_name:m.name,trip_name:trip.name,payer:payerName,
-      description:expense.description,amount:formatMoney(expense.amount,trip.currency),
-      app_url:window.location.origin+window.location.pathname }); } catch(e){}
-  }
-}
+// Lazily load a script (used to fetch the Excel engine only when exporting).
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
 
 const { useState, useEffect, useCallback } = React;
 const COLORS = ['#13c08a','#0ea5e9','#f43f5e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
@@ -221,7 +211,8 @@ const I={
   ticket:['M3 9a3 3 0 010 6v3h18v-3a3 3 0 010-6V6H3z','M9 6v12'], bag:['M6 7h12l1 14H5z','M9 7a3 3 0 016 0'], tag:['M20 12l-8 8-8-8V4h8z','M9 9h.01'],
   dots:'M5 12h.01M12 12h.01M19 12h.01', x:'M18 6L6 18M6 6l12 12', copy:['M9 9h11v11H9z','M5 15V4h11'],
   chart:['M4 20V11','M10 20V5','M16 20v-8','M2 20h20'],
-  download:['M12 3v12','M7 10l5 5 5-5','M5 21h14']
+  download:['M12 3v12','M7 10l5 5 5-5','M5 21h14'],
+  refresh:['M21 12a9 9 0 11-2.64-6.36','M21 3v5h-5']
 };
 const CAT={Food:{i:I.utensils,c:'#f59e0b'},Stay:{i:I.bed,c:'#8b5cf6'},Transport:{i:I.car,c:'#0ea5e9'},Activities:{i:I.ticket,c:'#ec4899'},Shopping:{i:I.bag,c:'#14b8a6'},Other:{i:I.tag,c:'#667a72'}};
 
@@ -233,23 +224,28 @@ function App(){
 }
 
 function Loader(){return <div className="loadwrap"><div className="spinner"/><span style={{fontSize:14}}>Loading…</span></div>;}
+function ErrState({onRetry}){return <div className="empty"><div className="eicon" style={{background:'var(--neg-soft)',color:'var(--neg)'}}><Ic d={I.x}/></div><div className="big">Can't connect</div><div className="sub">Check your internet connection and try again.</div><div style={{height:16}}/><button className="btn primary" onClick={onRetry} style={{maxWidth:200,margin:'0 auto'}}><Ic d={I.refresh}/> Retry</button></div>;}
 
 function HomeScreen(){
-  const [trips,setTrips]=useState([]);const [loading,setLoading]=useState(true);
+  const [trips,setTrips]=useState([]);const [loading,setLoading]=useState(true);const [err,setErr]=useState(false);
   const [showNew,setShowNew]=useState(false);const [showJoin,setShowJoin]=useState(false);
   const load=useCallback(async()=>{
-    setLoading(true);const ids=getKnown();
+    setErr(false);setLoading(true);const ids=getKnown();
     if(ids.length===0){setTrips([]);setLoading(false);return;}
-    const {data:tripRows}=await SB.from('trips').select('*').in('id',ids);
-    const out=[];
-    for(const t of (tripRows||[])){
-      const [{data:members},{data:expenses},{data:settlements}]=await Promise.all([
-        SB.from('members').select('*').eq('trip_id',t.id),SB.from('expenses').select('*').eq('trip_id',t.id),SB.from('settlements').select('*').eq('trip_id',t.id),
-      ]);
-      const net=computeBalances(members||[],expenses||[],settlements||[]);const me=getMe(t.id);
-      out.push({...t,memberCount:(members||[]).length,expenseCount:(expenses||[]).length,myNet:me?(net[me]||0):null});
-    }
-    out.sort((a,b)=>ids.indexOf(b.id)-ids.indexOf(a.id));setTrips(out);setLoading(false);
+    try{
+      const {data:tripRows,error}=await SB.from('trips').select('*').in('id',ids);
+      if(error)throw error;
+      const out=[];
+      for(const t of (tripRows||[])){
+        const [{data:members},{data:expenses},{data:settlements}]=await Promise.all([
+          SB.from('members').select('*').eq('trip_id',t.id),SB.from('expenses').select('*').eq('trip_id',t.id),SB.from('settlements').select('*').eq('trip_id',t.id),
+        ]);
+        const net=computeBalances(members||[],expenses||[],settlements||[]);const me=getMe(t.id);
+        out.push({...t,memberCount:(members||[]).length,expenseCount:(expenses||[]).length,myNet:me?(net[me]||0):null});
+      }
+      out.sort((a,b)=>ids.indexOf(b.id)-ids.indexOf(a.id));setTrips(out);
+    }catch(e){setErr(true);}
+    setLoading(false);
   },[]);
   useEffect(()=>{load();},[load]);
   return (
@@ -263,8 +259,9 @@ function HomeScreen(){
       </div>
       <div className="content nonav">
         {loading && <div><div className="skel"/><div className="skel" style={{opacity:.6}}/></div>}
-        {!loading && trips.length===0 && <div className="empty"><div className="eicon"><Ic d={I.receipt}/></div><div className="big">No trips yet</div><div className="sub">Create a trip, add your friends, then start logging expenses together.</div></div>}
-        {!loading && trips.length>0 && <div className="card">
+        {!loading && err && <ErrState onRetry={load}/>}
+        {!loading && !err && trips.length===0 && <div className="empty"><div className="eicon"><Ic d={I.receipt}/></div><div className="big">No trips yet</div><div className="sub">Create a trip, add your friends, then start logging expenses together.</div></div>}
+        {!loading && !err && trips.length>0 && <div className="card">
           {trips.map(t=>(
             <div className="row" key={t.id} onClick={()=>goTrip(t.id)}>
               <div className="avatar" style={{background:'linear-gradient(135deg,#16c79a,#0b7a57)'}}>{initials(t.name)}</div>
@@ -274,7 +271,7 @@ function HomeScreen(){
             </div>
           ))}
         </div>}
-        {!loading && <button className="btn primary" onClick={()=>setShowNew(true)} style={{marginTop:8}}><Ic d={I.plus}/> New trip</button>}
+        {!loading && !err && <button className="btn primary" onClick={()=>setShowNew(true)} style={{marginTop:8}}><Ic d={I.plus}/> New trip</button>}
       </div>
       {showNew && <NewTripSheet onClose={()=>setShowNew(false)} onCreated={(id)=>{addKnown(id);goTrip(id);}}/>}
       {showJoin && <JoinSheet onClose={()=>setShowJoin(false)} onJoined={(id)=>{addKnown(id);goTrip(id);}}/>}
@@ -289,9 +286,9 @@ function NewTripSheet({onClose,onCreated}){
     setBusy(false);if(error){alert('Could not create trip: '+error.message);return;}onCreated(data.id);};
   return (<Sheet onClose={onClose} title="New trip" sub="Give it a name. You'll add members next.">
     <label className="fld">Trip name</label>
-    <input className="input" autoFocus value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Greece 2026"/>
+    <input className="input" autoFocus value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Greece 2026" maxLength={40}/>
     <label className="fld">Currency</label>
-    <input className="input" value={currency} onChange={e=>setCurrency(e.target.value)} placeholder="EGP"/>
+    <input className="input" value={currency} onChange={e=>setCurrency(e.target.value)} placeholder="EGP" maxLength={8}/>
     <div className="spacer"/>
     <button className="btn primary" disabled={busy||!name.trim()} onClick={create}>{busy?'Creating…':'Create trip'}</button>
   </Sheet>);
@@ -311,17 +308,22 @@ function JoinSheet({onClose,onJoined}){
 function TripScreen({tripId}){
   const [trip,setTrip]=useState(null);const [members,setMembers]=useState([]);const [expenses,setExpenses]=useState([]);const [settlements,setSettlements]=useState([]);
   const [tab,setTab]=useState('balances');const [loading,setLoading]=useState(true);
-  const [addOpen,setAddOpen]=useState(false);const [editExp,setEditExp]=useState(null);const [showShare,setShowShare]=useState(false);const [showEdit,setShowEdit]=useState(false);const [notFound,setNotFound]=useState(false);
+  const [addOpen,setAddOpen]=useState(false);const [editExp,setEditExp]=useState(null);const [showShare,setShowShare]=useState(false);const [showEdit,setShowEdit]=useState(false);const [notFound,setNotFound]=useState(false);const [err,setErr]=useState(false);
   const load=useCallback(async()=>{
-    const {data:t}=await SB.from('trips').select('*').eq('id',tripId).maybeSingle();
-    if(!t){setNotFound(true);setLoading(false);return;}
-    addKnown(tripId);
-    const [{data:m},{data:e},{data:s}]=await Promise.all([
-      SB.from('members').select('*').eq('trip_id',tripId).order('created_at'),
-      SB.from('expenses').select('*').eq('trip_id',tripId).order('spent_on',{ascending:false}).order('created_at',{ascending:false}),
-      SB.from('settlements').select('*').eq('trip_id',tripId),
-    ]);
-    setTrip(t);setMembers(m||[]);setExpenses(e||[]);setSettlements(s||[]);setLoading(false);
+    setErr(false);
+    try{
+      const {data:t,error}=await SB.from('trips').select('*').eq('id',tripId).maybeSingle();
+      if(error)throw error;
+      if(!t){setNotFound(true);setLoading(false);return;}
+      addKnown(tripId);
+      const [{data:m},{data:e},{data:s}]=await Promise.all([
+        SB.from('members').select('*').eq('trip_id',tripId).order('created_at'),
+        SB.from('expenses').select('*').eq('trip_id',tripId).order('spent_on',{ascending:false}).order('created_at',{ascending:false}),
+        SB.from('settlements').select('*').eq('trip_id',tripId),
+      ]);
+      setTrip(t);setMembers(m||[]);setExpenses(e||[]);setSettlements(s||[]);
+    }catch(e){setErr(true);}
+    setLoading(false);
   },[tripId]);
   useEffect(()=>{load();},[load]);
   useEffect(()=>{
@@ -334,6 +336,7 @@ function TripScreen({tripId}){
   },[tripId,load]);
   if(loading)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname" style={{fontSize:18}}>Trip</div></div></div><Loader/></div>;
   if(notFound)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname" style={{fontSize:18}}>Trip</div></div></div><div className="empty"><div className="eicon"><Ic d={I.x}/></div><div className="big">Trip not found</div><div className="sub">The link or code may be wrong.</div></div></div>;
+  if(!trip)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname" style={{fontSize:18}}>Trip</div></div></div><ErrState onRetry={load}/></div>;
   const total=expenses.reduce((s,e)=>s+Number(e.amount),0);const cur=trip.currency||'EGP';const me=getMe(tripId);const hasM=members.length>0;
   return (
     <div className="app">
@@ -358,7 +361,7 @@ function TripScreen({tripId}){
         {tab==='summary' && <SummaryTab trip={trip} members={members} expenses={expenses} settlements={settlements}/>}
       </div>
 
-      <div className="tabbar">
+      <div className="tabbar" role="navigation" aria-label="Trip sections">
         <button className={'tabitem'+(tab==='balances'?' active':'')} onClick={()=>setTab('balances')}><Ic d={I.scale}/>Balances</button>
         <button className={'tabitem'+(tab==='expenses'?' active':'')} onClick={()=>setTab('expenses')}><Ic d={I.receipt}/>Expenses</button>
         <div className="tabitem spacer">.</div>
@@ -383,7 +386,7 @@ function EditTripSheet({trip,onClose,onSaved}){
     setBusy(true);
     const {error}=await SB.from('trips').update({name:name.trim(),currency:cur.trim()||'EGP',start_date:start||null,end_date:end||null}).eq('id',trip.id);
     setBusy(false);if(error){alert(error.message);return;}onSaved();};
-  return (<Sheet onClose={onClose} title="Edit trip" sub="The daily email report is sent only between the start and end dates.">
+  return (<Sheet onClose={onClose} title="Edit trip" sub="Set the trip name and dates.">
     <label className="fld">Trip name</label>
     <input className="input" autoFocus value={name} onChange={e=>setName(e.target.value)}/>
     <div className="two">
@@ -409,6 +412,8 @@ function BalancesTab({trip,members,expenses,settlements,onChange}){
   const settle=async(t)=>{if(!confirm('Mark '+nameOf(t.from)+' → '+nameOf(t.to)+' '+formatMoney(t.amount,cur)+' as paid?'))return;
     const {error}=await SB.from('settlements').insert({trip_id:trip.id,from_member:t.from,to_member:t.to,amount:t.amount});
     if(error){alert(error.message);return;}onChange();};
+  const resetSettle=async()=>{if(!confirm('Undo all settle-ups for this trip? Balances return to their pre-settlement state.'))return;
+    const {error}=await SB.from('settlements').delete().eq('trip_id',trip.id);if(error){alert(error.message);return;}onChange();};
   if(members.length===0)return <div className="empty"><div className="eicon"><Ic d={I.users}/></div><div className="big">No members yet</div><div className="sub">Add members in the Members tab first.</div></div>;
   return (<React.Fragment>
     <div className="section"><Ic d={I.handshake} sm/> Who owes whom</div>
@@ -429,6 +434,7 @@ function BalancesTab({trip,members,expenses,settlements,onChange}){
         {Math.abs(v)<0.005?<span className="pill flat">settled</span>:<span className={'pill '+(v>0?'pos':'neg')}>{v>0?'+':'−'}{formatMoney(Math.abs(v),cur)}</span>}
       </div>);})}
     </div>
+    {settlements.length>0 && <div className="center" style={{marginTop:4}}><button className="btn small outline" onClick={resetSettle}><Ic d={I.refresh} sm/> Undo all settle-ups</button></div>}
   </React.Fragment>);
 }
 
@@ -446,8 +452,13 @@ function ExpensesTab({trip,members,expenses,onEdit}){
   </div>);
 }
 
-async function exportSummaryExcel(trip,members,expenses,settlements){
-  if(!window.ExcelJS){alert('Excel engine still loading — please try again in a second.');return;}
+async function exportSummaryExcel(trip,members,expenses,settlements,onState){
+  if(!window.ExcelJS){
+    if(onState)onState('loading');
+    try{ await loadScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'); }catch(e){}
+  }
+  if(!window.ExcelJS){ if(onState)onState('error'); alert('Could not load the Excel engine. Check your connection and try again.'); return; }
+  if(onState)onState('idle');
   const cur=trip.currency||'EGP';
   const net=computeBalances(members,expenses,settlements);
   const transfers=simplifyDebts(net);
@@ -547,6 +558,7 @@ async function exportSummaryExcel(trip,members,expenses,settlements){
 }
 
 function SummaryTab({trip,members,expenses,settlements}){
+  const [exporting,setExporting]=useState(false);
   const cur=trip.currency||'EGP';
   const total=expenses.reduce((s,e)=>s+Number(e.amount),0);
   if(expenses.length===0)return <div className="empty"><div className="eicon"><Ic d={I.chart}/></div><div className="big">No data yet</div><div className="sub">Add some expenses to see your trip summary.</div></div>;
@@ -554,7 +566,7 @@ function SummaryTab({trip,members,expenses,settlements}){
   const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   const byPayer={};members.forEach(m=>byPayer[m.id]=0);expenses.forEach(e=>{if(byPayer[e.paid_by]!==undefined)byPayer[e.paid_by]+=Number(e.amount);});
   return (<React.Fragment>
-    <button className="btn primary" onClick={()=>exportSummaryExcel(trip,members,expenses,settlements)}><Ic d={I.download}/> Download Excel summary</button>
+    <button className="btn primary" disabled={exporting} onClick={()=>exportSummaryExcel(trip,members,expenses,settlements,(st)=>setExporting(st==='loading'))}><Ic d={I.download}/> {exporting?'Preparing…':'Download Excel summary'}</button>
     <div className="section"><Ic d={I.chart} sm/> Spending by category</div>
     <div className="card" style={{padding:'4px 0'}}>
       {cats.map(([c,amt])=>{const cat=CAT[c]||CAT.Other;const pct=total?Math.round(amt/total*100):0;return (
@@ -587,7 +599,10 @@ function MembersTab({trip,members,onChange}){
   const addMember=async()=>{if(!newName.trim())return;setBusy(true);const color=COLORS[members.length%COLORS.length];
     const {error}=await SB.from('members').insert({trip_id:trip.id,name:newName.trim(),email:newEmail.trim()||null,color,percent:0});setBusy(false);
     if(error){alert(error.message);return;}setNewName('');setNewEmail('');onChange();};
-  const savePercents=async()=>{setBusy(true);for(const m of local){await SB.from('members').update({percent:Number(m.percent)||0}).eq('id',m.id);}setBusy(false);onChange();};
+  const savePercents=async()=>{
+    const tt=local.reduce((s,m)=>s+(Number(m.percent)||0),0);
+    if(Math.abs(tt-100)>0.01){alert('Contribution percentages must add up to 100% (currently '+(Math.round(tt*100)/100)+'%). Use “Split equally” or adjust the values.');return;}
+    setBusy(true);for(const m of local){await SB.from('members').update({percent:Number(m.percent)||0}).eq('id',m.id);}setBusy(false);onChange();};
   return (<React.Fragment>
     <div className="section"><Ic d={I.scale} sm/> Members &amp; contribution %</div>
     <div className="card">
@@ -604,7 +619,7 @@ function MembersTab({trip,members,onChange}){
     {local.length>0 && <div className="two"><button className="btn outline" onClick={splitEqually}>Split equally</button><button className="btn primary" disabled={busy} onClick={savePercents}>{busy?'Saving…':'Save %'}</button></div>}
     <div className="section"><Ic d={I.plus} sm/> Add member</div>
     <div className="card" style={{padding:15}}>
-      <input className="input" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name"/>
+      <input className="input" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name" maxLength={30}/>
       <div style={{height:10}}/>
       <input className="input" type="email" value={newEmail} onChange={e=>setNewEmail(e.target.value)} placeholder="Email (optional — for notifications)"/>
       <div style={{height:12}}/>
@@ -647,7 +662,6 @@ function ExpenseSheet({trip,members,expense,onClose,onSaved}){
     if(editing){({error}=await SB.from('expenses').update(payload).eq('id',expense.id));}
     else{({error}=await SB.from('expenses').insert(payload));}
     setBusy(false);if(error){alert(error.message);return;}
-    if(!editing){const payer=(members.find(m=>m.id===paidBy)||{}).name||'Someone';notifyExpense(trip,members,payload,payer);}
     onSaved();};
   const del=async()=>{if(!confirm('Delete this expense?'))return;setBusy(true);await SB.from('expenses').delete().eq('id',expense.id);setBusy(false);onSaved();};
   return (<Sheet onClose={onClose} title={editing?'Edit expense':'New expense'}>
@@ -656,7 +670,7 @@ function ExpenseSheet({trip,members,expense,onClose,onSaved}){
       <div className="center" style={{marginTop:-2,fontWeight:700,color:'var(--brand2)'}}>{cur}</div>
     </div>
     <label className="fld">Description</label>
-    <input className="input" value={desc} onChange={e=>setDesc(e.target.value)} placeholder="e.g. Dinner at the taverna"/>
+    <input className="input" value={desc} onChange={e=>setDesc(e.target.value)} placeholder="e.g. Dinner at the taverna" maxLength={60}/>
     <label className="fld">Category</label>
     <div>{CATEGORIES.map(c=><span key={c} className={'chip'+(category===c?' on':'')} onClick={()=>setCategory(category===c?'':c)}><Ic d={CAT[c].i} sm/>{c}</span>)}</div>
     <div className="two">
