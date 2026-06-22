@@ -1,4 +1,4 @@
-const CACHE = 'bokha-tripsplit-v2';
+const CACHE = 'bokha-tripsplit-v3';
 const SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
