@@ -161,9 +161,11 @@ const SB = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // Ensure a (transparent) anonymous session so the locked-down database can
 // authorize this device. No signup or login — it happens silently, once.
+let MY_UID=null;
 async function ensureSession(){
-  const {data}=await SB.auth.getSession();
-  if(!data.session){ const {error}=await SB.auth.signInAnonymously(); if(error) throw error; }
+  let {data}=await SB.auth.getSession();
+  if(!data.session){ const {error}=await SB.auth.signInAnonymously(); if(error) throw error; ({data}=await SB.auth.getSession()); }
+  MY_UID = data.session ? data.session.user.id : null;
 }
 
 // Lazily load a script (used to fetch the Excel engine only when exporting).
@@ -403,6 +405,10 @@ function EditTripSheet({trip,onClose,onSaved}){
     if(!confirm('Reset settle-ups?\n\nThis permanently deletes ALL recorded settle-ups for this trip and cannot be undone. Balances return to their pre-settlement state.'))return;
     setBusy(true);const {error}=await SB.from('settlements').delete().eq('trip_id',trip.id);setBusy(false);
     if(error){alert(error.message);return;}onSaved();};
+  const delTrip=async()=>{
+    if(!confirm('Delete this entire trip?\n\nThis permanently removes the trip and ALL its members, expenses and settle-ups — for everyone. This cannot be undone.'))return;
+    setBusy(true);const {error}=await SB.from('trips').delete().eq('id',trip.id);setBusy(false);
+    if(error){alert(error.message);return;}removeKnown(trip.id);onClose();goHome();};
   return (<Sheet onClose={onClose} title="Edit trip" sub="Set the trip name and dates.">
     <label className="fld">Trip name</label>
     <input className="input" autoFocus value={name} onChange={e=>setName(e.target.value)}/>
@@ -418,6 +424,11 @@ function EditTripSheet({trip,onClose,onSaved}){
     <div className="section" style={{margin:'0 4px 9px',color:'var(--neg)'}}>Danger zone</div>
     <button className="btn danger" disabled={busy} onClick={resetSettle}><Ic d={I.trash} sm/> Reset all settle-ups</button>
     <div className="muted" style={{fontSize:12,margin:'8px 4px 0'}}>Permanently deletes every recorded settle-up for this trip.</div>
+    {trip.created_by===MY_UID && <React.Fragment>
+      <div style={{height:12}}/>
+      <button className="btn danger" disabled={busy} onClick={delTrip}><Ic d={I.trash} sm/> Delete this trip</button>
+      <div className="muted" style={{fontSize:12,margin:'8px 4px 0'}}>Only you (the trip creator) can do this. Removes the whole trip for everyone.</div>
+    </React.Fragment>}
   </Sheet>);
 }
 
