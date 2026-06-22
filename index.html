@@ -15,113 +15,131 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <style>
 :root{
-  --brand1:#10b981;--brand2:#0b7a57;--brand-deep:#075c43;
-  --grad:linear-gradient(135deg,#12c08a 0%,#0b7a57 100%);
-  --pos:#0b7a57;--pos-soft:#e7f6ef;--neg:#c2410c;--neg-soft:#fdece2;
-  --ink:#142019;--muted:#6b7772;--faint:#9aa5a0;
-  --line:#e9ece9;--bg:#f3f5f3;--card:#ffffff;
-  --r-sm:10px;--r:14px;--r-lg:20px;
-  --shadow:0 1px 2px rgba(16,40,30,.06),0 4px 16px rgba(16,40,30,.05);
-  --shadow-lg:0 8px 30px rgba(11,122,87,.18);
+  --brand1:#13c08a;--brand2:#0b7a57;--brand-deep:#075c43;
+  --grad:linear-gradient(135deg,#16c79a 0%,#0b7a57 100%);
+  --accent:#6366f1;
+  --pos:#0b7a57;--pos-soft:#e6f7ef;--neg:#e11d48;--neg-soft:#fdeef2;--warn:#b45309;
+  --ink:#10231b;--muted:#667a72;--faint:#9aa8a1;
+  --line:#e9eeeb;--bg:#eef2f0;--card:#ffffff;
+  --r-sm:12px;--r:16px;--r-lg:22px;--r-xl:28px;
+  --shadow:0 1px 2px rgba(11,60,43,.05),0 6px 18px rgba(11,60,43,.06);
+  --shadow-md:0 6px 22px rgba(11,60,43,.10);
+  --shadow-lg:0 12px 34px rgba(11,122,87,.28);
+  --navh:74px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body,#root{height:100%;margin:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;-webkit-font-smoothing:antialiased;}
-.app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;position:relative;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;position:relative;background:var(--bg);overflow-x:hidden;}
 
-/* Brand header (gradient) */
-.brandbar{background:var(--grad);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 20px 22px;border-radius:0 0 26px 26px;box-shadow:var(--shadow-lg);position:relative;}
-.brandbar.flat{border-radius:0 0 26px 26px;}
-.brandrow{display:flex;align-items:center;gap:12px;}
-.logo{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-weight:800;letter-spacing:.5px;font-size:15px;backdrop-filter:blur(4px);flex-shrink:0;}
-.brandname{font-size:20px;font-weight:700;letter-spacing:.2px;}
-.brandname small{display:block;font-size:12px;font-weight:500;opacity:.85;letter-spacing:.3px;}
-.iconbtn{background:rgba(255,255,255,.16);border:none;color:#fff;width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.iconbtn:active{transform:scale(.94);}
-.iconbtn.dark{background:var(--pos-soft);color:var(--brand2);}
+/* brand header */
+.brandbar{background:var(--grad);color:#fff;padding:calc(20px + env(safe-area-inset-top)) 20px 24px;border-radius:0 0 28px 28px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;}
+.brandbar::after{content:"";position:absolute;right:-40px;top:-50px;width:170px;height:170px;border-radius:50%;background:rgba(255,255,255,.10);}
+.brandbar::before{content:"";position:absolute;right:60px;top:30px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.07);}
+.brandrow{display:flex;align-items:center;gap:13px;position:relative;z-index:1;}
+.logo{width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,.20);display:flex;align-items:center;justify-content:center;font-weight:800;letter-spacing:.5px;font-size:15px;flex-shrink:0;border:1px solid rgba(255,255,255,.25);}
+.brandname{font-size:21px;font-weight:800;letter-spacing:.2px;line-height:1.1;}
+.brandname small{display:block;font-size:12px;font-weight:500;opacity:.9;letter-spacing:.2px;margin-top:3px;}
+.iconbtn{background:rgba(255,255,255,.18);border:none;color:#fff;width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;}
+.iconbtn:active{transform:scale(.92);background:rgba(255,255,255,.28);}
 
-/* trip hero */
-.hero{margin-top:16px;}
-.hero .htotal{font-size:30px;font-weight:800;letter-spacing:-.5px;}
-.hero .hlabel{font-size:12.5px;opacity:.85;font-weight:500;text-transform:uppercase;letter-spacing:.6px;}
-.hero .hmeta{font-size:13px;opacity:.9;margin-top:2px;}
+.hero{margin-top:18px;position:relative;z-index:1;}
+.hero .hlabel{font-size:11.5px;opacity:.9;font-weight:700;text-transform:uppercase;letter-spacing:.9px;}
+.hero .htotal{font-size:33px;font-weight:800;letter-spacing:-.6px;margin-top:2px;}
+.hero .hmeta{font-size:13px;opacity:.92;margin-top:3px;font-weight:500;}
 
-.content{flex:1;padding:18px 16px 110px;}
-
-/* segmented tabs */
-.seg{display:flex;background:#eef1ef;border-radius:13px;padding:4px;margin:-30px 0 18px;position:relative;box-shadow:var(--shadow);}
-.seg button{flex:1;border:none;background:none;padding:10px;font-size:14px;font-weight:600;font-family:inherit;color:var(--muted);border-radius:10px;cursor:pointer;transition:.15s;}
-.seg button.active{background:#fff;color:var(--brand2);box-shadow:0 1px 3px rgba(16,40,30,.12);}
+.content{flex:1;padding:18px 16px calc(var(--navh) + 26px + env(safe-area-inset-bottom));animation:fadein .25s ease;}
+.content.nonav{padding-bottom:30px;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* cards & rows */
 .card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px;}
-.row{padding:14px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;}
+.row{padding:15px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:background .15s;}
+.row:active{background:#f7faf8;}
 .row + .row{border-top:1px solid var(--line);}
 .row .grow{flex:1;min-width:0;}
-.row .title{font-weight:600;font-size:15px;}
-.row .meta{font-size:12.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.row .amt{font-weight:700;white-space:nowrap;font-size:15px;}
+.row .title{font-weight:650;font-size:15px;letter-spacing:-.1px;}
+.row .meta{font-size:12.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.row .amt{font-weight:750;white-space:nowrap;font-size:15px;}
 .pos{color:var(--pos);}.neg{color:var(--neg);}
 
-.pill{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;white-space:nowrap;}
+.pill{font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
 .pill.pos{background:var(--pos-soft);color:var(--brand-deep);}
 .pill.neg{background:var(--neg-soft);color:var(--neg);}
 .pill.flat{background:#eef1ef;color:var(--muted);}
 
-.avatar{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;flex-shrink:0;}
-.avatar.sm{width:32px;height:32px;font-size:12px;border-radius:10px;}
+.avatar{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:750;flex-shrink:0;box-shadow:0 3px 8px rgba(11,60,43,.14);}
+.avatar.sm{width:34px;height:34px;font-size:12.5px;border-radius:11px;}
 
 /* buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;font-family:inherit;padding:14px 18px;border-radius:var(--r);border:none;background:#fff;color:var(--ink);cursor:pointer;width:100%;box-shadow:var(--shadow);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-size:16px;font-weight:700;font-family:inherit;padding:15px 18px;border-radius:var(--r);border:none;background:#fff;color:var(--ink);cursor:pointer;box-shadow:var(--shadow);width:100%;transition:transform .12s;}
 .btn.primary{background:var(--grad);color:#fff;box-shadow:var(--shadow-lg);}
 .btn.soft{background:var(--pos-soft);color:var(--brand2);box-shadow:none;}
-.btn.outline{background:#fff;border:1.5px solid var(--line);box-shadow:none;}
+.btn.outline{background:#fff;border:1.5px solid var(--line);box-shadow:none;color:var(--ink);}
 .btn.danger{background:var(--neg-soft);color:var(--neg);box-shadow:none;}
-.btn.small{width:auto;padding:9px 15px;font-size:13.5px;border-radius:11px;font-weight:600;}
-.btn:active{transform:scale(.985);}
+.btn.small{width:auto;padding:10px 16px;font-size:13.5px;border-radius:12px;}
+.btn:active{transform:scale(.98);}
 .btn:disabled{opacity:.5;}
 
-.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom));max-width:448px;width:calc(100% - 36px);z-index:10;}
+/* bottom nav */
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-around;padding:9px 8px calc(9px + env(safe-area-inset-bottom));z-index:30;box-shadow:0 -4px 20px rgba(11,60,43,.06);}
+.tabitem{flex:1;background:none;border:none;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--faint);font-size:11px;font-weight:600;cursor:pointer;padding:4px 0;transition:color .15s;}
+.tabitem.active{color:var(--brand2);}
+.tabitem svg{width:23px;height:23px;}
+.tabitem.spacer{visibility:hidden;}
+.navfab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(28px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:20px;background:var(--grad);color:#fff;border:4px solid var(--bg);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);z-index:31;cursor:pointer;transition:transform .12s;}
+.navfab:active{transform:translateX(-50%) scale(.93);}
+.navfab svg{width:28px;height:28px;}
 
 /* forms */
-label.fld{display:block;margin:16px 0 7px;font-size:13px;color:var(--muted);font-weight:600;}
-.input,select.input,textarea.input{width:100%;font-size:16px;font-family:inherit;color:var(--ink);padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fbfcfb;outline:none;transition:.15s;}
-.input:focus{border-color:var(--brand1);background:#fff;box-shadow:0 0 0 3px rgba(16,185,129,.12);}
-.amount-input{font-size:34px;font-weight:800;text-align:center;padding:14px;border:none;background:transparent;letter-spacing:-.5px;}
+label.fld{display:block;margin:16px 0 7px;font-size:13px;color:var(--muted);font-weight:650;}
+.input,select.input,textarea.input{width:100%;font-size:16px;font-family:inherit;color:var(--ink);padding:14px;border:1.5px solid var(--line);border-radius:14px;background:#fafdfb;outline:none;transition:.15s;}
+.input:focus{border-color:var(--brand1);background:#fff;box-shadow:0 0 0 4px rgba(19,192,138,.13);}
+.amount-input{font-size:36px;font-weight:800;text-align:center;padding:12px;border:none;background:transparent;letter-spacing:-.5px;}
 .amount-input:focus{box-shadow:none;}
 .two{display:flex;gap:10px;}.two>*{flex:1;}
 
 .pct-row{display:flex;align-items:center;gap:12px;padding:13px 16px;}
 .pct-row + .pct-row{border-top:1px solid var(--line);}
-.pct-input{width:70px;text-align:right;padding:9px 10px;}
-.pct-total{display:flex;justify-content:space-between;padding:13px 16px;font-size:13.5px;font-weight:600;border-top:1px solid var(--line);}
+.pct-input{width:72px;text-align:right;padding:10px;}
+.pct-total{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-size:13.5px;font-weight:700;border-top:1px solid var(--line);}
 .pct-total.bad{color:var(--neg);}.pct-total.ok{color:var(--pos);}
 
-.section{font-size:12.5px;color:var(--faint);margin:20px 4px 9px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;}
+.section{font-size:12px;color:var(--faint);margin:22px 6px 10px;text-transform:uppercase;letter-spacing:.08em;font-weight:750;display:flex;align-items:center;gap:7px;}
 
-.empty{text-align:center;color:var(--muted);padding:46px 24px;}
-.empty .eicon{width:64px;height:64px;border-radius:20px;background:var(--pos-soft);color:var(--brand2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
-.empty .big{font-size:17px;color:var(--ink);margin-bottom:5px;font-weight:700;}
-.empty .sub{font-size:14px;}
+.empty{text-align:center;color:var(--muted);padding:52px 28px;animation:fadein .3s ease;}
+.empty .eicon{width:74px;height:74px;border-radius:24px;background:var(--pos-soft);color:var(--brand2);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.empty .eicon svg{width:34px;height:34px;}
+.empty .big{font-size:18px;color:var(--ink);margin-bottom:6px;font-weight:750;}
+.empty .sub{font-size:14px;line-height:1.5;}
 
-/* bottom sheet */
-.sheet-bg{position:fixed;inset:0;background:rgba(10,30,22,.5);z-index:20;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px);animation:fade .2s;}
+/* spinner */
+.loadwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 0;gap:14px;color:var(--muted);animation:fadein .3s;}
+.spinner{width:38px;height:38px;border-radius:50%;border:3.5px solid var(--pos-soft);border-top-color:var(--brand1);animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.skel{height:74px;border-radius:var(--r-lg);background:linear-gradient(90deg,#eef2f0 25%,#e3e9e6 37%,#eef2f0 63%);background-size:400% 100%;animation:shimmer 1.3s infinite;margin-bottom:12px;}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+/* sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(8,28,20,.5);z-index:40;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);animation:fade .2s;}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-.sheet{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:10px 18px calc(26px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;animation:slideup .25s cubic-bezier(.2,.8,.2,1);}
-@keyframes slideup{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
-.grab{width:40px;height:5px;border-radius:3px;background:#dfe4e1;margin:6px auto 12px;}
-.sheet h2{margin:0 0 4px;font-size:19px;font-weight:700;}
-.sheet .ssub{color:var(--muted);font-size:14px;margin:0 0 14px;}
+.sheet{background:var(--card);width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:10px 18px calc(28px + env(safe-area-inset-bottom));max-height:93vh;overflow:auto;animation:slideup .28s cubic-bezier(.2,.85,.25,1);}
+@keyframes slideup{from{transform:translateY(60px);opacity:.5}to{transform:translateY(0);opacity:1}}
+.grab{width:42px;height:5px;border-radius:3px;background:#dce3df;margin:7px auto 14px;}
+.sheet h2{margin:0 0 4px;font-size:20px;font-weight:800;}
+.sheet .ssub{color:var(--muted);font-size:14px;margin:0 0 14px;line-height:1.5;}
 
-.banner{background:#fff8ec;border:1px solid #ffe2b3;color:#8a5a00;padding:13px 15px;border-radius:14px;font-size:13.5px;margin-bottom:16px;}
+.banner{background:linear-gradient(135deg,#fff8ec,#fff3e0);border:1px solid #ffe1b0;color:#8a5a00;padding:14px 16px;border-radius:16px;font-size:13.5px;margin-bottom:16px;}
 .muted{color:var(--muted);font-size:14px;}
 .center{text-align:center;}
 .spacer{height:8px;}
-.chip{display:inline-block;background:#f1f4f2;border:1.5px solid transparent;border-radius:999px;padding:7px 14px;font-size:13.5px;margin:0 7px 8px 0;cursor:pointer;font-weight:600;color:var(--muted);}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#f1f5f3;border:1.5px solid transparent;border-radius:999px;padding:8px 14px;font-size:13.5px;margin:0 7px 8px 0;cursor:pointer;font-weight:650;color:var(--muted);transition:.12s;}
+.chip:active{transform:scale(.96);}
 .chip.on{background:var(--pos-soft);border-color:var(--brand1);color:var(--brand2);}
-.copybtn{font-size:12.5px;}
-svg.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+svg.ic{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block;}
 svg.ic.sm{width:17px;height:17px;}
+.catico{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.catico svg{width:18px;height:18px;}
 </style>
 </head>
 <body>
@@ -136,9 +154,7 @@ const SUPA_URL = 'https://hisdnziwdlegxririysw.supabase.co';
 const SUPA_KEY = 'sb_publishable__pb6Mhd4LtoFtGm2rChzRg_4vJR4KKt';
 const SB = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// === Email notifications (EmailJS) ===
-// Fill these 3 values after creating a free EmailJS account to turn on
-// email alerts when someone adds an expense. Leave blank to disable.
+// === Email notifications (EmailJS) — fill to enable ===
 const EMAILJS = { publicKey: '', serviceId: '', templateId: '' };
 const emailReady = () => EMAILJS.publicKey && EMAILJS.serviceId && EMAILJS.templateId && window.emailjs;
 if (EMAILJS.publicKey && window.emailjs) { try { window.emailjs.init({ publicKey: EMAILJS.publicKey }); } catch(e){} }
@@ -146,19 +162,15 @@ async function notifyExpense(trip, members, expense, payerName){
   if (!emailReady()) return;
   const recips = members.filter(m => m.email && m.id !== expense.paid_by);
   for (const m of recips){
-    try {
-      await window.emailjs.send(EMAILJS.serviceId, EMAILJS.templateId, {
-        to_email: m.email, to_name: m.name, trip_name: trip.name,
-        payer: payerName, description: expense.description,
-        amount: formatMoney(expense.amount, trip.currency),
-        app_url: window.location.origin + window.location.pathname
-      });
-    } catch(e){}
+    try { await window.emailjs.send(EMAILJS.serviceId, EMAILJS.templateId, {
+      to_email:m.email,to_name:m.name,trip_name:trip.name,payer:payerName,
+      description:expense.description,amount:formatMoney(expense.amount,trip.currency),
+      app_url:window.location.origin+window.location.pathname }); } catch(e){}
   }
 }
 
 const { useState, useEffect, useCallback } = React;
-const COLORS = ['#10b981','#0ea5e9','#f43f5e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
+const COLORS = ['#13c08a','#0ea5e9','#f43f5e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
 const CATEGORIES = ['Food','Stay','Transport','Activities','Shopping','Other'];
 
 const KNOWN='tripsplit.trips';
@@ -168,6 +180,8 @@ const removeKnown=(id)=>{localStorage.setItem(KNOWN,JSON.stringify(getKnown().fi
 const getMe=(t)=>localStorage.getItem('tripsplit.me.'+t)||'';
 const setMe=(t,m)=>localStorage.setItem('tripsplit.me.'+t,m);
 const initials=(n)=>(n||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const avGrad=(c)=>'linear-gradient(135deg,'+c+', '+shade(c,-22)+')';
+function shade(hex,p){const n=parseInt(hex.slice(1),16);let r=(n>>16)+p*2.55,g=((n>>8)&255)+p*2.55,b=(n&255)+p*2.55;r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));return '#'+(1<<24|r<<16|g<<8|b|0).toString(16).slice(1);}
 
 function computeBalances(members,expenses,settlements){
   const net={};members.forEach(m=>net[m.id]=0);
@@ -182,25 +196,29 @@ function simplifyDebts(net){
   while(i<de.length&&j<cr.length){const pay=Math.min(de[i].amount,cr[j].amount);tr.push({from:de[i].id,to:cr[j].id,amount:Math.round(pay*100)/100});de[i].amount-=pay;cr[j].amount-=pay;if(de[i].amount<0.005)i++;if(cr[j].amount<0.005)j++;}
   return tr;
 }
-function formatMoney(amount,currency='EGP'){
-  const n=(Math.round((Number(amount)||0)*100)/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-  return currency+' '+n;
-}
+function formatMoney(amount,currency='EGP'){const n=(Math.round((Number(amount)||0)*100)/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});return currency+' '+n;}
 function fmtDate(d){try{return new Date(d+'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'});}catch{return d;}}
 function parseHash(){const m=(window.location.hash||'').match(/^#\/trip\/([0-9a-f-]+)/i);return m?{name:'trip',id:m[1]}:{name:'home'};}
 const goTrip=(id)=>{window.location.hash='#/trip/'+id;};
 const goHome=()=>{window.location.hash='';};
 const shareLink=(id)=>window.location.origin+window.location.pathname+'#/trip/'+id;
 
-// --- icons ---
-const Ic=({d,sm})=>(<svg className={'ic'+(sm?' sm':'')} viewBox="0 0 24 24" aria-hidden="true"><path d={d}/></svg>);
+// icons (Lucide / Feather style)
+const Ic=({d,sm})=>(<svg className={'ic'+(sm?' sm':'')} viewBox="0 0 24 24" aria-hidden="true">{Array.isArray(d)?d.map((p,i)=><path key={i} d={p}/>):<path d={d}/>}</svg>);
 const I={
-  back:'M15 18l-6-6 6-6', plus:'M12 5v14M5 12h14', share:'M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13',
-  edit:'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z', trash:'M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6l-1 14a1 1 0 01-1 1H7a1 1 0 01-1-1L5 6',
-  users:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
-  receipt:'M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1zM8 7h8M8 11h8M8 15h5',
-  check:'M20 6L9 17l-5-5', mail:'M4 4h16v16H4zM4 6l8 6 8-6'
+  back:'M15 18l-6-6 6-6', plus:'M12 5v14M5 12h14', share:['M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8','M16 6l-4-4-4 4','M12 2v13'],
+  edit:['M12 20h9','M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z'], trash:['M3 6h18','M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2','M19 6l-1 14a1 1 0 01-1 1H7a1 1 0 01-1-1L5 6'],
+  users:['M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2','M9 11a4 4 0 100-8 4 4 0 000 8','M23 21v-2a4 4 0 00-3-3.87','M16 3.13a4 4 0 010 7.75'],
+  receipt:['M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1z','M8 7h8M8 11h8M8 15h5'],
+  scale:['M12 3v18','M5 7h14','M5 7l-3 7a3 3 0 006 0z','M19 7l-3 7a3 3 0 006 0z','M8 21h8'],
+  check:'M20 6L9 17l-5-5', mail:['M4 4h16v16H4z','M4 7l8 5 8-5'], handshake:['M11 17l2 2 4-4','M3 12l4-4 5 4 3-3 6 6','M3 12v5h4'],
+  arrowr:'M5 12h14M13 6l6 6-6 6', calendar:['M5 4h14a1 1 0 011 1v15a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z','M16 2v4M8 2v4M4 10h16'],
+  utensils:['M4 3v7a2 2 0 002 2 2 2 0 002-2V3','M6 3v18','M16 3c-1.5 1-2 3-2 5s.5 4 2 5v8'],
+  bed:['M2 8v12','M2 14h20v6','M22 14v-3a3 3 0 00-3-3H8v6','M6 11h.01'], car:['M5 13l2-5h10l2 5','M3 13h18v5H3z','M6 18v2M18 18v2','M7 16h.01M17 16h.01'],
+  ticket:['M3 9a3 3 0 010 6v3h18v-3a3 3 0 010-6V6H3z','M9 6v12'], bag:['M6 7h12l1 14H5z','M9 7a3 3 0 016 0'], tag:['M20 12l-8 8-8-8V4h8z','M9 9h.01'],
+  dots:'M5 12h.01M12 12h.01M19 12h.01', x:'M18 6L6 18M6 6l12 12', copy:['M9 9h11v11H9z','M5 15V4h11']
 };
+const CAT={Food:{i:I.utensils,c:'#f59e0b'},Stay:{i:I.bed,c:'#8b5cf6'},Transport:{i:I.car,c:'#0ea5e9'},Activities:{i:I.ticket,c:'#ec4899'},Shopping:{i:I.bag,c:'#14b8a6'},Other:{i:I.tag,c:'#667a72'}};
 
 function App(){
   const [route,setRoute]=useState(parseHash());
@@ -208,6 +226,8 @@ function App(){
   if(route.name==='trip')return <TripScreen tripId={route.id} key={route.id}/>;
   return <HomeScreen/>;
 }
+
+function Loader(){return <div className="loadwrap"><div className="spinner"/><span style={{fontSize:14}}>Loading…</span></div>;}
 
 function HomeScreen(){
   const [trips,setTrips]=useState([]);const [loading,setLoading]=useState(true);
@@ -219,39 +239,37 @@ function HomeScreen(){
     const out=[];
     for(const t of (tripRows||[])){
       const [{data:members},{data:expenses},{data:settlements}]=await Promise.all([
-        SB.from('members').select('*').eq('trip_id',t.id),
-        SB.from('expenses').select('*').eq('trip_id',t.id),
-        SB.from('settlements').select('*').eq('trip_id',t.id),
+        SB.from('members').select('*').eq('trip_id',t.id),SB.from('expenses').select('*').eq('trip_id',t.id),SB.from('settlements').select('*').eq('trip_id',t.id),
       ]);
       const net=computeBalances(members||[],expenses||[],settlements||[]);const me=getMe(t.id);
       out.push({...t,memberCount:(members||[]).length,expenseCount:(expenses||[]).length,myNet:me?(net[me]||0):null});
     }
-    out.sort((a,b)=>ids.indexOf(b.id)-ids.indexOf(a.id));
-    setTrips(out);setLoading(false);
+    out.sort((a,b)=>ids.indexOf(b.id)-ids.indexOf(a.id));setTrips(out);setLoading(false);
   },[]);
   useEffect(()=>{load();},[load]);
   return (
     <div className="app">
-      <div className="brandbar flat">
+      <div className="brandbar">
         <div className="brandrow">
           <div className="logo">BT</div>
           <div className="grow"><div className="brandname">Bokha tripsplit<small>Split trip costs with friends</small></div></div>
           <button className="iconbtn" onClick={()=>setShowJoin(true)} aria-label="Join trip"><Ic d={I.users}/></button>
         </div>
       </div>
-      <div className="content" style={{paddingTop:20}}>
-        {loading && <p className="muted center" style={{marginTop:30}}>Loading…</p>}
+      <div className="content nonav">
+        {loading && <div><div className="skel"/><div className="skel" style={{opacity:.6}}/></div>}
         {!loading && trips.length===0 && <div className="empty"><div className="eicon"><Ic d={I.receipt}/></div><div className="big">No trips yet</div><div className="sub">Create a trip, add your friends, then start logging expenses together.</div></div>}
         {!loading && trips.length>0 && <div className="card">
           {trips.map(t=>(
             <div className="row" key={t.id} onClick={()=>goTrip(t.id)}>
-              <div className="avatar" style={{background:'linear-gradient(135deg,#12c08a,#0b7a57)'}}>{initials(t.name)}</div>
-              <div className="grow"><div className="title">{t.name}</div><div className="meta">{t.memberCount} members · {t.expenseCount} expenses</div></div>
+              <div className="avatar" style={{background:'linear-gradient(135deg,#16c79a,#0b7a57)'}}>{initials(t.name)}</div>
+              <div className="grow"><div className="title">{t.name}</div><div className="meta"><Ic d={I.users} sm/>{t.memberCount} · <Ic d={I.receipt} sm/>{t.expenseCount}</div></div>
               {t.myNet!==null && Math.abs(t.myNet)>0.005 && <span className={'pill '+(t.myNet>0?'pos':'neg')}>{t.myNet>0?'+':'−'}{formatMoney(Math.abs(t.myNet),t.currency)}</span>}
+              <Ic d={I.arrowr} sm/>
             </div>
           ))}
         </div>}
-        <button className="btn primary" onClick={()=>setShowNew(true)} style={{marginTop:8}}><Ic d={I.plus}/> New trip</button>
+        {!loading && <button className="btn primary" onClick={()=>setShowNew(true)} style={{marginTop:8}}><Ic d={I.plus}/> New trip</button>}
       </div>
       {showNew && <NewTripSheet onClose={()=>setShowNew(false)} onCreated={(id)=>{addKnown(id);goTrip(id);}}/>}
       {showJoin && <JoinSheet onClose={()=>setShowJoin(false)} onJoined={(id)=>{addKnown(id);goTrip(id);}}/>}
@@ -273,14 +291,13 @@ function NewTripSheet({onClose,onCreated}){
     <button className="btn primary" disabled={busy||!name.trim()} onClick={create}>{busy?'Creating…':'Create trip'}</button>
   </Sheet>);
 }
-
 function JoinSheet({onClose,onJoined}){
   const [code,setCode]=useState('');const [busy,setBusy]=useState(false);
   const join=async()=>{const c=code.trim().toUpperCase();if(!c)return;setBusy(true);
     const {data}=await SB.from('trips').select('id').eq('join_code',c).maybeSingle();
     setBusy(false);if(!data){alert('No trip found with that code.');return;}onJoined(data.id);};
   return (<Sheet onClose={onClose} title="Join a trip" sub="Enter the 6-character code a friend shared.">
-    <input className="input" autoFocus value={code} onChange={e=>setCode(e.target.value.toUpperCase())} placeholder="ABC123" maxLength={6} style={{textTransform:'uppercase',letterSpacing:'3px',textAlign:'center',fontSize:22,fontWeight:700}}/>
+    <input className="input" autoFocus value={code} onChange={e=>setCode(e.target.value.toUpperCase())} placeholder="ABC123" maxLength={6} style={{textTransform:'uppercase',letterSpacing:'4px',textAlign:'center',fontSize:24,fontWeight:800}}/>
     <div className="spacer"/>
     <button className="btn primary" disabled={busy||!code.trim()} onClick={join}>{busy?'Joining…':'Join trip'}</button>
   </Sheet>);
@@ -310,9 +327,9 @@ function TripScreen({tripId}){
       .subscribe();
     return()=>{SB.removeChannel(ch);};
   },[tripId,load]);
-  if(loading)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname">Trip</div></div></div><p className="muted center" style={{marginTop:40}}>Loading…</p></div>;
-  if(notFound)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname">Trip</div></div></div><div className="empty"><div className="big">Trip not found</div><div className="sub">The link or code may be wrong.</div></div></div>;
-  const total=expenses.reduce((s,e)=>s+Number(e.amount),0);const cur=trip.currency||'EGP';const me=getMe(tripId);
+  if(loading)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname" style={{fontSize:18}}>Trip</div></div></div><Loader/></div>;
+  if(notFound)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname" style={{fontSize:18}}>Trip</div></div></div><div className="empty"><div className="eicon"><Ic d={I.x}/></div><div className="big">Trip not found</div><div className="sub">The link or code may be wrong.</div></div></div>;
+  const total=expenses.reduce((s,e)=>s+Number(e.amount),0);const cur=trip.currency||'EGP';const me=getMe(tripId);const hasM=members.length>0;
   return (
     <div className="app">
       <div className="brandbar">
@@ -327,18 +344,21 @@ function TripScreen({tripId}){
           <div className="hmeta">{members.length} members · {expenses.length} expenses</div>
         </div>
       </div>
-      <div className="content">
-        <div className="seg">
-          <button className={tab==='balances'?'active':''} onClick={()=>setTab('balances')}>Balances</button>
-          <button className={tab==='expenses'?'active':''} onClick={()=>setTab('expenses')}>Expenses</button>
-          <button className={tab==='members'?'active':''} onClick={()=>setTab('members')}>Members</button>
-        </div>
-        {!me && members.length>0 && <WhoAmI members={members} tripId={tripId} onPick={load}/>}
+      <div className="content" key={tab}>
+        {!me && hasM && <WhoAmI members={members} tripId={tripId} onPick={load}/>}
         {tab==='balances' && <BalancesTab trip={trip} members={members} expenses={expenses} settlements={settlements} onChange={load}/>}
         {tab==='expenses' && <ExpensesTab trip={trip} members={members} expenses={expenses} onEdit={setEditExp}/>}
         {tab==='members' && <MembersTab trip={trip} members={members} onChange={load}/>}
       </div>
-      {members.length>0 && tab!=='members' && <button className="btn primary fab" onClick={()=>setAddOpen(true)}><Ic d={I.plus}/> Add expense</button>}
+
+      <div className="tabbar">
+        <button className={'tabitem'+(tab==='balances'?' active':'')} onClick={()=>setTab('balances')}><Ic d={I.scale}/>Balances</button>
+        <button className={'tabitem'+(tab==='expenses'?' active':'')} onClick={()=>setTab('expenses')}><Ic d={I.receipt}/>Expenses</button>
+        <div className="tabitem spacer">.</div>
+        <button className={'tabitem'+(tab==='members'?' active':'')} onClick={()=>setTab('members')}><Ic d={I.users}/>Members</button>
+      </div>
+      {hasM && <button className="navfab" onClick={()=>setAddOpen(true)} aria-label="Add expense"><Ic d={I.plus}/></button>}
+
       {addOpen && <ExpenseSheet trip={trip} members={members} onClose={()=>setAddOpen(false)} onSaved={()=>{setAddOpen(false);load();}}/>}
       {editExp && <ExpenseSheet trip={trip} members={members} expense={editExp} onClose={()=>setEditExp(null)} onSaved={()=>{setEditExp(null);load();}}/>}
       {showShare && <ShareSheet trip={trip} onClose={()=>setShowShare(false)}/>}
@@ -348,7 +368,7 @@ function TripScreen({tripId}){
 
 function WhoAmI({members,tripId,onPick}){
   return (<div className="banner"><b>Which member are you</b> on this phone?
-    <div style={{marginTop:8}}>{members.map(m=><span key={m.id} className="chip" onClick={()=>{setMe(tripId,m.id);onPick();}}>{m.name}</span>)}</div>
+    <div style={{marginTop:9}}>{members.map(m=><span key={m.id} className="chip" onClick={()=>{setMe(tripId,m.id);onPick();}}>{m.name}</span>)}</div>
   </div>);
 }
 
@@ -360,20 +380,20 @@ function BalancesTab({trip,members,expenses,settlements,onChange}){
     if(error){alert(error.message);return;}onChange();};
   if(members.length===0)return <div className="empty"><div className="eicon"><Ic d={I.users}/></div><div className="big">No members yet</div><div className="sub">Add members in the Members tab first.</div></div>;
   return (<React.Fragment>
-    <div className="section">Who owes whom</div>
+    <div className="section"><Ic d={I.handshake} sm/> Who owes whom</div>
     {transfers.length===0
-      ? <div className="card"><div className="row" style={{cursor:'default'}}><div className="avatar sm" style={{background:'var(--pos-soft)',color:'var(--brand2)'}}><Ic d={I.check} sm/></div><div className="grow"><div className="title">All settled up</div><div className="meta">No outstanding balances.</div></div></div></div>
+      ? <div className="card"><div className="row" style={{cursor:'default'}}><div className="avatar sm" style={{background:'var(--pos-soft)',color:'var(--brand2)',boxShadow:'none'}}><Ic d={I.check} sm/></div><div className="grow"><div className="title">All settled up</div><div className="meta">No outstanding balances 🎉</div></div></div></div>
       : <div className="card">{transfers.map((t,i)=>(
           <div className="row" key={i} style={{cursor:'default'}}>
-            <div className="avatar sm" style={{background:colorOf(t.from)}}>{initials(nameOf(t.from))}</div>
-            <div className="grow"><div className="title" style={{fontSize:14.5}}>{nameOf(t.from)} <span className="muted">pays</span> {nameOf(t.to)}</div><div className="meta pos" style={{fontWeight:700,color:'var(--pos)'}}>{formatMoney(t.amount,cur)}</div></div>
-            <button className="btn small soft" onClick={()=>settle(t)}>Settle</button>
+            <div className="avatar sm" style={{background:avGrad(colorOf(t.from))}}>{initials(nameOf(t.from))}</div>
+            <div className="grow"><div className="title" style={{fontSize:14.5}}>{nameOf(t.from)} <span className="muted" style={{fontWeight:500}}>pays</span> {nameOf(t.to)}</div><div className="meta" style={{fontWeight:750,color:'var(--pos)'}}>{formatMoney(t.amount,cur)}</div></div>
+            <button className="btn small soft" onClick={()=>settle(t)}><Ic d={I.check} sm/> Settle</button>
           </div>))}
         </div>}
-    <div className="section">Net per person</div>
+    <div className="section"><Ic d={I.scale} sm/> Net per person</div>
     <div className="card">{members.map(m=>{const v=net[m.id]||0;return (
       <div className="row" key={m.id} style={{cursor:'default'}}>
-        <div className="avatar sm" style={{background:m.color}}>{initials(m.name)}</div>
+        <div className="avatar sm" style={{background:avGrad(m.color)}}>{initials(m.name)}</div>
         <div className="grow"><div className="title">{m.name}{m.id===me?' · you':''}</div><div className="meta">{Number(m.percent)}% share</div></div>
         {Math.abs(v)<0.005?<span className="pill flat">settled</span>:<span className={'pill '+(v>0?'pos':'neg')}>{v>0?'+':'−'}{formatMoney(Math.abs(v),cur)}</span>}
       </div>);})}
@@ -382,16 +402,16 @@ function BalancesTab({trip,members,expenses,settlements,onChange}){
 }
 
 function ExpensesTab({trip,members,expenses,onEdit}){
-  const cur=trip.currency||'EGP';const nameOf=(id)=>(members.find(m=>m.id===id)||{}).name||'?';const colorOf=(id)=>(members.find(m=>m.id===id)||{}).color||'#888';
-  if(expenses.length===0)return <div className="empty"><div className="eicon"><Ic d={I.receipt}/></div><div className="big">No expenses yet</div><div className="sub">Tap “Add expense” to log the first one.</div></div>;
+  const cur=trip.currency||'EGP';const nameOf=(id)=>(members.find(m=>m.id===id)||{}).name||'?';
+  if(expenses.length===0)return <div className="empty"><div className="eicon"><Ic d={I.receipt}/></div><div className="big">No expenses yet</div><div className="sub">Tap the + button to log the first one.</div></div>;
   return (<div className="card">
-    {expenses.map(e=>(
+    {expenses.map(e=>{const cat=CAT[e.category]||CAT.Other;return (
       <div className="row" key={e.id} onClick={()=>onEdit(e)}>
-        <div className="avatar sm" style={{background:colorOf(e.paid_by)}}>{initials(nameOf(e.paid_by))}</div>
-        <div className="grow"><div className="title">{e.description}</div><div className="meta">{nameOf(e.paid_by)} paid · {e.category?e.category+' · ':''}{fmtDate(e.spent_on)}</div></div>
-        <div className="amt">{formatMoney(e.amount,cur)}</div>
-        <span className="muted" style={{color:'var(--faint)'}}><Ic d={I.edit} sm/></span>
-      </div>))}
+        <div className="catico" style={{background:cat.c+'1f',color:cat.c}}><Ic d={cat.i}/></div>
+        <div className="grow"><div className="title">{e.description}</div><div className="meta">{nameOf(e.paid_by)} paid · {fmtDate(e.spent_on)}</div></div>
+        <div style={{textAlign:'right'}}><div className="amt">{formatMoney(e.amount,cur)}</div></div>
+        <span style={{color:'var(--faint)'}}><Ic d={I.edit} sm/></span>
+      </div>);})}
   </div>);
 }
 
@@ -406,12 +426,12 @@ function MembersTab({trip,members,onChange}){
     if(error){alert(error.message);return;}setNewName('');setNewEmail('');onChange();};
   const savePercents=async()=>{setBusy(true);for(const m of local){await SB.from('members').update({percent:Number(m.percent)||0}).eq('id',m.id);}setBusy(false);onChange();};
   return (<React.Fragment>
-    <div className="section">Members &amp; contribution %</div>
+    <div className="section"><Ic d={I.scale} sm/> Members &amp; contribution %</div>
     <div className="card">
       {local.length===0 && <div className="row" style={{cursor:'default'}}><div className="grow muted">No members yet. Add the first below.</div></div>}
       {local.map(m=>(
         <div className="pct-row" key={m.id}>
-          <div className="avatar sm" style={{background:m.color}}>{initials(m.name)}</div>
+          <div className="avatar sm" style={{background:avGrad(m.color)}}>{initials(m.name)}</div>
           <div className="grow" onClick={()=>setEditM(m)} style={{cursor:'pointer'}}><div className="title">{m.name}</div><div className="meta">{m.email||'no email'}</div></div>
           <input className="input pct-input" type="number" inputMode="decimal" min="0" max="100" value={m.percent} onChange={e=>setPct(m.id,e.target.value)}/>
           <span className="muted">%</span>
@@ -419,8 +439,8 @@ function MembersTab({trip,members,onChange}){
       {local.length>0 && <div className={'pct-total '+(Math.abs(totalRounded-100)<0.005?'ok':'bad')}><span>Total</span><span>{totalRounded}% {Math.abs(totalRounded-100)<0.005?'✓':'(must be 100%)'}</span></div>}
     </div>
     {local.length>0 && <div className="two"><button className="btn outline" onClick={splitEqually}>Split equally</button><button className="btn primary" disabled={busy} onClick={savePercents}>{busy?'Saving…':'Save %'}</button></div>}
-    <div className="section">Add member</div>
-    <div className="card" style={{padding:14}}>
+    <div className="section"><Ic d={I.plus} sm/> Add member</div>
+    <div className="card" style={{padding:15}}>
       <input className="input" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name"/>
       <div style={{height:10}}/>
       <input className="input" type="email" value={newEmail} onChange={e=>setNewEmail(e.target.value)} placeholder="Email (optional — for notifications)"/>
@@ -468,14 +488,14 @@ function ExpenseSheet({trip,members,expense,onClose,onSaved}){
     onSaved();};
   const del=async()=>{if(!confirm('Delete this expense?'))return;setBusy(true);await SB.from('expenses').delete().eq('id',expense.id);setBusy(false);onSaved();};
   return (<Sheet onClose={onClose} title={editing?'Edit expense':'New expense'}>
-    <div className="card" style={{padding:'6px 0',marginBottom:14}}>
-      <input className="input amount-input" type="number" inputMode="decimal" autoFocus={!editing} value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00"/>
-      <div className="center muted" style={{marginTop:-2,fontWeight:600}}>{cur}</div>
+    <div className="card" style={{padding:'10px 0',marginBottom:14,background:'var(--pos-soft)',boxShadow:'none'}}>
+      <input className="input amount-input" type="number" inputMode="decimal" autoFocus={!editing} value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00" style={{color:'var(--brand-deep)'}}/>
+      <div className="center" style={{marginTop:-2,fontWeight:700,color:'var(--brand2)'}}>{cur}</div>
     </div>
     <label className="fld">Description</label>
     <input className="input" value={desc} onChange={e=>setDesc(e.target.value)} placeholder="e.g. Dinner at the taverna"/>
-    <label className="fld">Category (optional)</label>
-    <div>{CATEGORIES.map(c=><span key={c} className={'chip'+(category===c?' on':'')} onClick={()=>setCategory(category===c?'':c)}>{c}</span>)}</div>
+    <label className="fld">Category</label>
+    <div>{CATEGORIES.map(c=><span key={c} className={'chip'+(category===c?' on':'')} onClick={()=>setCategory(category===c?'':c)}><Ic d={CAT[c].i} sm/>{c}</span>)}</div>
     <div className="two">
       <div><label className="fld">Paid by</label>
         <select className="input" value={paidBy} onChange={e=>setPaidBy(e.target.value)}>{members.map(m=><option key={m.id} value={m.id}>{m.name}{m.id===me?' (you)':''}</option>)}</select>
@@ -486,7 +506,7 @@ function ExpenseSheet({trip,members,expense,onClose,onSaved}){
       <label className="fld">Split by contribution %</label>
       <div className="card">{members.map(m=>(
         <div className="row" key={m.id} style={{cursor:'default',padding:'11px 16px'}}>
-          <div className="avatar sm" style={{background:m.color}}>{initials(m.name)}</div>
+          <div className="avatar sm" style={{background:avGrad(m.color)}}>{initials(m.name)}</div>
           <div className="grow"><span className="muted">{m.name} · {Number(m.percent)}%</span></div>
           <div className="amt" style={{fontSize:14}}>{formatMoney(amt*(Number(m.percent)||0)/100,cur)}</div>
         </div>))}
@@ -504,13 +524,13 @@ function ShareSheet({trip,onClose}){
   return (<Sheet onClose={onClose} title="Share this trip" sub="Send the link or code to your friends so they can join from their phones.">
     <label className="fld">Join code</label>
     <div className="card"><div className="row" style={{cursor:'default'}}>
-      <div className="grow" style={{fontSize:24,letterSpacing:4,fontWeight:800}}>{trip.join_code}</div>
-      <button className="btn small soft copybtn" onClick={()=>copy(trip.join_code,'code')}>{copied==='code'?'Copied':'Copy'}</button>
+      <div className="grow" style={{fontSize:26,letterSpacing:5,fontWeight:800,color:'var(--brand2)'}}>{trip.join_code}</div>
+      <button className="btn small soft" onClick={()=>copy(trip.join_code,'code')}><Ic d={I.copy} sm/>{copied==='code'?'Copied':'Copy'}</button>
     </div></div>
     <label className="fld">Direct link</label>
     <div className="card"><div className="row" style={{cursor:'default'}}>
       <div className="grow muted" style={{fontSize:13,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</div>
-      <button className="btn small soft copybtn" onClick={()=>copy(link,'link')}>{copied==='link'?'Copied':'Copy'}</button>
+      <button className="btn small soft" onClick={()=>copy(link,'link')}><Ic d={I.copy} sm/>{copied==='link'?'Copied':'Copy'}</button>
     </div></div>
     <div className="spacer"/>
     <button className="btn outline" onClick={()=>{removeKnown(trip.id);goHome();}} style={{color:'var(--neg)'}}>Remove this trip from my phone</button>
