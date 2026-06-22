@@ -216,7 +216,8 @@ const I={
   utensils:['M4 3v7a2 2 0 002 2 2 2 0 002-2V3','M6 3v18','M16 3c-1.5 1-2 3-2 5s.5 4 2 5v8'],
   bed:['M2 8v12','M2 14h20v6','M22 14v-3a3 3 0 00-3-3H8v6','M6 11h.01'], car:['M5 13l2-5h10l2 5','M3 13h18v5H3z','M6 18v2M18 18v2','M7 16h.01M17 16h.01'],
   ticket:['M3 9a3 3 0 010 6v3h18v-3a3 3 0 010-6V6H3z','M9 6v12'], bag:['M6 7h12l1 14H5z','M9 7a3 3 0 016 0'], tag:['M20 12l-8 8-8-8V4h8z','M9 9h.01'],
-  dots:'M5 12h.01M12 12h.01M19 12h.01', x:'M18 6L6 18M6 6l12 12', copy:['M9 9h11v11H9z','M5 15V4h11']
+  dots:'M5 12h.01M12 12h.01M19 12h.01', x:'M18 6L6 18M6 6l12 12', copy:['M9 9h11v11H9z','M5 15V4h11'],
+  chart:['M4 20V11','M10 20V5','M16 20v-8','M2 20h20']
 };
 const CAT={Food:{i:I.utensils,c:'#f59e0b'},Stay:{i:I.bed,c:'#8b5cf6'},Transport:{i:I.car,c:'#0ea5e9'},Activities:{i:I.ticket,c:'#ec4899'},Shopping:{i:I.bag,c:'#14b8a6'},Other:{i:I.tag,c:'#667a72'}};
 
@@ -349,6 +350,7 @@ function TripScreen({tripId}){
         {tab==='balances' && <BalancesTab trip={trip} members={members} expenses={expenses} settlements={settlements} onChange={load}/>}
         {tab==='expenses' && <ExpensesTab trip={trip} members={members} expenses={expenses} onEdit={setEditExp}/>}
         {tab==='members' && <MembersTab trip={trip} members={members} onChange={load}/>}
+        {tab==='summary' && <SummaryTab trip={trip} members={members} expenses={expenses}/>}
       </div>
 
       <div className="tabbar">
@@ -356,6 +358,7 @@ function TripScreen({tripId}){
         <button className={'tabitem'+(tab==='expenses'?' active':'')} onClick={()=>setTab('expenses')}><Ic d={I.receipt}/>Expenses</button>
         <div className="tabitem spacer">.</div>
         <button className={'tabitem'+(tab==='members'?' active':'')} onClick={()=>setTab('members')}><Ic d={I.users}/>Members</button>
+        <button className={'tabitem'+(tab==='summary'?' active':'')} onClick={()=>setTab('summary')}><Ic d={I.chart}/>Summary</button>
       </div>
       {hasM && <button className="navfab" onClick={()=>setAddOpen(true)} aria-label="Add expense"><Ic d={I.plus}/></button>}
 
@@ -413,6 +416,37 @@ function ExpensesTab({trip,members,expenses,onEdit}){
         <span style={{color:'var(--faint)'}}><Ic d={I.edit} sm/></span>
       </div>);})}
   </div>);
+}
+
+function SummaryTab({trip,members,expenses}){
+  const cur=trip.currency||'EGP';
+  const total=expenses.reduce((s,e)=>s+Number(e.amount),0);
+  if(expenses.length===0)return <div className="empty"><div className="eicon"><Ic d={I.chart}/></div><div className="big">No data yet</div><div className="sub">Add some expenses to see your trip summary.</div></div>;
+  const byCat={};expenses.forEach(e=>{const c=e.category||'Other';byCat[c]=(byCat[c]||0)+Number(e.amount);});
+  const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const byPayer={};members.forEach(m=>byPayer[m.id]=0);expenses.forEach(e=>{if(byPayer[e.paid_by]!==undefined)byPayer[e.paid_by]+=Number(e.amount);});
+  return (<React.Fragment>
+    <div className="section"><Ic d={I.chart} sm/> Spending by category</div>
+    <div className="card" style={{padding:'4px 0'}}>
+      {cats.map(([c,amt])=>{const cat=CAT[c]||CAT.Other;const pct=total?Math.round(amt/total*100):0;return (
+        <div key={c} style={{padding:'13px 16px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <div className="catico" style={{background:cat.c+'1f',color:cat.c}}><Ic d={cat.i}/></div>
+            <div className="grow"><div className="title">{c}</div><div className="meta">{pct}% of total</div></div>
+            <div className="amt">{formatMoney(amt,cur)}</div>
+          </div>
+          <div style={{height:7,borderRadius:6,background:'#eef2f0',marginTop:10,overflow:'hidden'}}><div style={{height:'100%',width:pct+'%',background:cat.c,borderRadius:6,transition:'width .4s'}}/></div>
+        </div>);})}
+    </div>
+    <div className="section"><Ic d={I.users} sm/> Paid by each person</div>
+    <div className="card">{members.map(m=>(
+      <div className="row" key={m.id} style={{cursor:'default'}}>
+        <div className="avatar sm" style={{background:avGrad(m.color)}}>{initials(m.name)}</div>
+        <div className="grow"><div className="title">{m.name}</div></div>
+        <div className="amt">{formatMoney(byPayer[m.id]||0,cur)}</div>
+      </div>))}
+    </div>
+  </React.Fragment>);
 }
 
 function MembersTab({trip,members,onChange}){
