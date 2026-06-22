@@ -159,6 +159,13 @@ const SUPA_URL = 'https://hisdnziwdlegxririysw.supabase.co';
 const SUPA_KEY = 'sb_publishable__pb6Mhd4LtoFtGm2rChzRg_4vJR4KKt';
 const SB = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
+// Ensure a (transparent) anonymous session so the locked-down database can
+// authorize this device. No signup or login — it happens silently, once.
+async function ensureSession(){
+  const {data}=await SB.auth.getSession();
+  if(!data.session){ const {error}=await SB.auth.signInAnonymously(); if(error) throw error; }
+}
+
 // Lazily load a script (used to fetch the Excel engine only when exporting).
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
 
@@ -218,7 +225,11 @@ const CAT={Food:{i:I.utensils,c:'#f59e0b'},Stay:{i:I.bed,c:'#8b5cf6'},Transport:
 
 function App(){
   const [route,setRoute]=useState(parseHash());
+  const [authReady,setAuthReady]=useState(false);const [authErr,setAuthErr]=useState(false);
   useEffect(()=>{const f=()=>setRoute(parseHash());window.addEventListener('hashchange',f);return()=>window.removeEventListener('hashchange',f);},[]);
+  useEffect(()=>{let on=true;(async()=>{try{await ensureSession();if(on)setAuthReady(true);}catch(e){if(on)setAuthErr(true);}})();return()=>{on=false;};},[]);
+  if(authErr)return <div className="app"><div className="brandbar"><div className="brandrow"><div className="logo">BT</div><div className="grow"><div className="brandname">Bokha tripsplit</div></div></div></div><ErrState onRetry={()=>window.location.reload()}/></div>;
+  if(!authReady)return <div className="app"><div className="brandbar"><div className="brandrow"><div className="logo">BT</div><div className="grow"><div className="brandname">Bokha tripsplit</div></div></div></div><Loader/></div>;
   if(route.name==='trip')return <TripScreen tripId={route.id} key={route.id}/>;
   return <HomeScreen/>;
 }
@@ -233,14 +244,15 @@ function HomeScreen(){
     setErr(false);setLoading(true);const ids=getKnown();
     if(ids.length===0){setTrips([]);setLoading(false);return;}
     try{
-      const {data:tripRows,error}=await SB.from('trips').select('*').in('id',ids);
-      if(error)throw error;
       const out=[];
-      for(const t of (tripRows||[])){
+      for(const id of ids){
+        const {data:t,error}=await SB.rpc('join_trip',{p_id:id});
+        if(error)throw error;
+        if(!t)continue;
         const [{data:members},{data:expenses},{data:settlements}]=await Promise.all([
-          SB.from('members').select('*').eq('trip_id',t.id),SB.from('expenses').select('*').eq('trip_id',t.id),SB.from('settlements').select('*').eq('trip_id',t.id),
+          SB.from('members').select('*').eq('trip_id',id),SB.from('expenses').select('*').eq('trip_id',id),SB.from('settlements').select('*').eq('trip_id',id),
         ]);
-        const net=computeBalances(members||[],expenses||[],settlements||[]);const me=getMe(t.id);
+        const net=computeBalances(members||[],expenses||[],settlements||[]);const me=getMe(id);
         out.push({...t,memberCount:(members||[]).length,expenseCount:(expenses||[]).length,myNet:me?(net[me]||0):null});
       }
       out.sort((a,b)=>ids.indexOf(b.id)-ids.indexOf(a.id));setTrips(out);
@@ -296,8 +308,8 @@ function NewTripSheet({onClose,onCreated}){
 function JoinSheet({onClose,onJoined}){
   const [code,setCode]=useState('');const [busy,setBusy]=useState(false);
   const join=async()=>{const c=code.trim().toUpperCase();if(!c)return;setBusy(true);
-    const {data}=await SB.from('trips').select('id').eq('join_code',c).maybeSingle();
-    setBusy(false);if(!data){alert('No trip found with that code.');return;}onJoined(data.id);};
+    const {data,error}=await SB.rpc('join_trip',{p_code:c});
+    setBusy(false);if(error||!data){alert('No trip found with that code.');return;}onJoined(data.id);};
   return (<Sheet onClose={onClose} title="Join a trip" sub="Enter the 6-character code a friend shared.">
     <input className="input" autoFocus value={code} onChange={e=>setCode(e.target.value.toUpperCase())} placeholder="ABC123" maxLength={6} style={{textTransform:'uppercase',letterSpacing:'4px',textAlign:'center',fontSize:24,fontWeight:800}}/>
     <div className="spacer"/>
@@ -312,7 +324,7 @@ function TripScreen({tripId}){
   const load=useCallback(async()=>{
     setErr(false);
     try{
-      const {data:t,error}=await SB.from('trips').select('*').eq('id',tripId).maybeSingle();
+      const {data:t,error}=await SB.rpc('join_trip',{p_id:tripId});
       if(error)throw error;
       if(!t){setNotFound(true);setLoading(false);return;}
       addKnown(tripId);
@@ -334,6 +346,7 @@ function TripScreen({tripId}){
       .subscribe();
     return()=>{SB.removeChannel(ch);};
   },[tripId,load]);
+  useEffect(()=>{const f=()=>{if(document.visibilityState==='visible')load();};document.addEventListener('visibilitychange',f);return()=>document.removeEventListener('visibilitychange',f);},[load]);
   if(loading)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname" style={{fontSize:18}}>Trip</div></div></div><Loader/></div>;
   if(notFound)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname" style={{fontSize:18}}>Trip</div></div></div><div className="empty"><div className="eicon"><Ic d={I.x}/></div><div className="big">Trip not found</div><div className="sub">The link or code may be wrong.</div></div></div>;
   if(!trip)return <div className="app"><div className="brandbar"><div className="brandrow"><button className="iconbtn" onClick={goHome}><Ic d={I.back}/></button><div className="brandname" style={{fontSize:18}}>Trip</div></div></div><ErrState onRetry={load}/></div>;
@@ -386,6 +399,10 @@ function EditTripSheet({trip,onClose,onSaved}){
     setBusy(true);
     const {error}=await SB.from('trips').update({name:name.trim(),currency:cur.trim()||'EGP',start_date:start||null,end_date:end||null}).eq('id',trip.id);
     setBusy(false);if(error){alert(error.message);return;}onSaved();};
+  const resetSettle=async()=>{
+    if(!confirm('Reset settle-ups?\n\nThis permanently deletes ALL recorded settle-ups for this trip and cannot be undone. Balances return to their pre-settlement state.'))return;
+    setBusy(true);const {error}=await SB.from('settlements').delete().eq('trip_id',trip.id);setBusy(false);
+    if(error){alert(error.message);return;}onSaved();};
   return (<Sheet onClose={onClose} title="Edit trip" sub="Set the trip name and dates.">
     <label className="fld">Trip name</label>
     <input className="input" autoFocus value={name} onChange={e=>setName(e.target.value)}/>
@@ -394,9 +411,13 @@ function EditTripSheet({trip,onClose,onSaved}){
       <div><label className="fld">End date</label><input className="input" type="date" value={end} onChange={e=>setEnd(e.target.value)}/></div>
     </div>
     <label className="fld">Currency</label>
-    <input className="input" value={cur} onChange={e=>setCur(e.target.value)}/>
+    <input className="input" value={cur} onChange={e=>setCur(e.target.value)} maxLength={8}/>
     <div className="spacer"/>
     <button className="btn primary" disabled={busy||!name.trim()} onClick={save}>{busy?'Saving…':'Save changes'}</button>
+    <div style={{height:24}}/>
+    <div className="section" style={{margin:'0 4px 9px',color:'var(--neg)'}}>Danger zone</div>
+    <button className="btn danger" disabled={busy} onClick={resetSettle}><Ic d={I.trash} sm/> Reset all settle-ups</button>
+    <div className="muted" style={{fontSize:12,margin:'8px 4px 0'}}>Permanently deletes every recorded settle-up for this trip.</div>
   </Sheet>);
 }
 
@@ -412,8 +433,6 @@ function BalancesTab({trip,members,expenses,settlements,onChange}){
   const settle=async(t)=>{if(!confirm('Mark '+nameOf(t.from)+' → '+nameOf(t.to)+' '+formatMoney(t.amount,cur)+' as paid?'))return;
     const {error}=await SB.from('settlements').insert({trip_id:trip.id,from_member:t.from,to_member:t.to,amount:t.amount});
     if(error){alert(error.message);return;}onChange();};
-  const resetSettle=async()=>{if(!confirm('Undo all settle-ups for this trip? Balances return to their pre-settlement state.'))return;
-    const {error}=await SB.from('settlements').delete().eq('trip_id',trip.id);if(error){alert(error.message);return;}onChange();};
   if(members.length===0)return <div className="empty"><div className="eicon"><Ic d={I.users}/></div><div className="big">No members yet</div><div className="sub">Add members in the Members tab first.</div></div>;
   return (<React.Fragment>
     <div className="section"><Ic d={I.handshake} sm/> Who owes whom</div>
@@ -434,7 +453,6 @@ function BalancesTab({trip,members,expenses,settlements,onChange}){
         {Math.abs(v)<0.005?<span className="pill flat">settled</span>:<span className={'pill '+(v>0?'pos':'neg')}>{v>0?'+':'−'}{formatMoney(Math.abs(v),cur)}</span>}
       </div>);})}
     </div>
-    {settlements.length>0 && <div className="center" style={{marginTop:4}}><button className="btn small outline" onClick={resetSettle}><Ic d={I.refresh} sm/> Undo all settle-ups</button></div>}
   </React.Fragment>);
 }
 
