@@ -23,8 +23,12 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://hisdnziwdlegxririysw.supa
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "sb_publishable__pb6Mhd4LtoFtGm2rChzRg_4vJR4KKt")
 HEAD = {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY}
 
-GMAIL_USER = os.environ.get("GMAIL_USER")
-GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
+# SMTP — defaults to Brevo, but works with any SMTP provider.
+SMTP_HOST = os.environ.get("SMTP_HOST") or "smtp-relay.brevo.com"
+SMTP_PORT = int(os.environ.get("SMTP_PORT") or "587")
+SMTP_USER = os.environ.get("SMTP_USER")
+SMTP_PASS = os.environ.get("SMTP_PASS")
+SMTP_FROM = os.environ.get("SMTP_FROM") or SMTP_USER
 
 BRAND = colors.HexColor("#0b7a57")
 BRAND_LIGHT = colors.HexColor("#e6f7ef")
@@ -159,15 +163,21 @@ def build_pdf(trip, members, expenses, settlements):
 def send_email(recipients, trip_name, pdf_bytes, body_text):
     msg = EmailMessage()
     msg["Subject"] = f"Bokha tripsplit - daily summary: {trip_name} ({datetime.date.today().isoformat()})"
-    msg["From"] = f"Bokha tripsplit <{GMAIL_USER}>"
-    msg["To"] = GMAIL_USER
+    msg["From"] = f"Bokha tripsplit <{SMTP_FROM}>"
+    msg["To"] = SMTP_FROM
     msg["Bcc"] = ", ".join(recipients)
     msg.set_content(body_text)
     fname = f"{trip_name.replace(' ', '_')}_summary_{datetime.date.today().isoformat()}.pdf"
     msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=fname)
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-        s.login(GMAIL_USER, GMAIL_APP_PASSWORD)
-        s.send_message(msg)
+    if SMTP_PORT == 465:
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as s:
+            s.login(SMTP_USER, SMTP_PASS)
+            s.send_message(msg)
+    else:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+            s.ehlo(); s.starttls(); s.ehlo()
+            s.login(SMTP_USER, SMTP_PASS)
+            s.send_message(msg)
 
 
 def cairo_now():
@@ -197,8 +207,8 @@ def main():
     if not should_run():
         print("Not local midnight in Egypt - skipping this run.")
         return
-    if not GMAIL_USER or not GMAIL_APP_PASSWORD:
-        raise SystemExit("Missing GMAIL_USER / GMAIL_APP_PASSWORD secrets.")
+    if not SMTP_USER or not SMTP_PASS:
+        raise SystemExit("Missing SMTP_USER / SMTP_PASS secrets.")
 
     today_iso = cairo_now().date().isoformat()
     trips = requests.get(f"{SUPABASE_URL}/rest/v1/trips",
