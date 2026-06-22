@@ -151,7 +151,7 @@ svg.ic.sm{width:17px;height:17px;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script type="text/babel" data-presets="react">
 const SUPA_URL = 'https://hisdnziwdlegxririysw.supabase.co';
 const SUPA_KEY = 'sb_publishable__pb6Mhd4LtoFtGm2rChzRg_4vJR4KKt';
@@ -446,35 +446,104 @@ function ExpensesTab({trip,members,expenses,onEdit}){
   </div>);
 }
 
-function exportSummaryExcel(trip,members,expenses,settlements){
-  if(!window.XLSX){alert('Excel library still loading — please try again in a second.');return;}
+async function exportSummaryExcel(trip,members,expenses,settlements){
+  if(!window.ExcelJS){alert('Excel engine still loading — please try again in a second.');return;}
   const cur=trip.currency||'EGP';
   const net=computeBalances(members,expenses,settlements);
   const transfers=simplifyDebts(net);
   const nameOf=(id)=>(members.find(m=>m.id===id)||{}).name||'?';
   const total=expenses.reduce((s,e)=>s+Number(e.amount),0);
-  const sum=[['Bokha tripsplit'],[trip.name]];
-  if(trip.start_date&&trip.end_date)sum.push(['Dates',trip.start_date+' to '+trip.end_date]);
-  sum.push(['Report date',new Date().toISOString().slice(0,10)]);
-  sum.push(['Currency',cur]);
-  sum.push(['Total spent',Math.round(total*100)/100]);
-  sum.push([]);
-  sum.push(['Members & balances']);
-  sum.push(['Member','Share %','Net balance']);
-  members.forEach(m=>{const v=net[m.id]||0;sum.push([m.name,Number(m.percent)||0,Math.abs(v)<0.005?'settled':((v<0?'owes ':'is owed ')+formatMoney(Math.abs(v),cur))]);});
-  sum.push([]);
-  sum.push(['Who owes whom']);
-  if(transfers.length)transfers.forEach(t=>sum.push([nameOf(t.from)+' → '+nameOf(t.to),Math.round(t.amount*100)/100]));
-  else sum.push(['All settled up']);
-  const wb=window.XLSX.utils.book_new();
-  const ws1=window.XLSX.utils.aoa_to_sheet(sum);ws1['!cols']=[{wch:28},{wch:14},{wch:22}];
-  window.XLSX.utils.book_append_sheet(wb,ws1,'Summary');
-  const exp=[['Date','Description','Category','Paid by','Amount ('+cur+')']];
-  expenses.forEach(e=>exp.push([e.spent_on,e.description,e.category||'',nameOf(e.paid_by),Math.round(Number(e.amount)*100)/100]));
-  const ws2=window.XLSX.utils.aoa_to_sheet(exp);ws2['!cols']=[{wch:12},{wch:30},{wch:14},{wch:16},{wch:14}];
-  window.XLSX.utils.book_append_sheet(wb,ws2,'Expenses');
-  const fn=trip.name.replace(/[^a-z0-9]+/gi,'_')+'_summary_'+new Date().toISOString().slice(0,10)+'.xlsx';
-  window.XLSX.writeFile(wb,fn);
+  const paid={};members.forEach(m=>paid[m.id]=0);expenses.forEach(e=>{if(paid[e.paid_by]!==undefined)paid[e.paid_by]+=Number(e.amount);});
+  const today=new Date().toISOString().slice(0,10);
+  const MONEY='"'+cur+'" #,##0.00';
+  const PCT='0.0"%"';
+  const BRAND='FF0B7A57',BRAND_DK='FF075C43',SOFT='FFE9F6F0',MUTE='FF6B7772',GRID='FFDDE5E1',ZEBRA='FFF5F8F6',POS='FF0B7A57',NEG='FFC2410C',WHITE='FFFFFFFF',INK='FF142019';
+  const wb=new ExcelJS.Workbook();wb.creator='Bokha tripsplit';wb.created=new Date();
+  const thin=()=>({style:'thin',color:{argb:GRID}});
+  const boxAll=c=>{c.border={top:thin(),left:thin(),bottom:thin(),right:thin()};};
+  const fill=(c,argb)=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:argb}};};
+  function titleBlock(ws,subtitle,span){
+    ws.mergeCells(1,1,1,span);const a=ws.getCell(1,1);a.value='Bokha tripsplit';a.font={bold:true,size:20,color:{argb:WHITE}};fill(a,BRAND);a.alignment={vertical:'middle',indent:1};ws.getRow(1).height=36;
+    ws.mergeCells(2,1,2,span);const b=ws.getCell(2,1);b.value=subtitle;b.font={bold:true,size:13,color:{argb:WHITE}};fill(b,BRAND_DK);b.alignment={vertical:'middle',indent:1};ws.getRow(2).height=22;
+    ws.mergeCells(3,1,3,span);const dts=(trip.start_date&&trip.end_date)?('Trip dates: '+trip.start_date+' to '+trip.end_date+'     |     '):'';
+    const c=ws.getCell(3,1);c.value=dts+'Report date: '+today;c.font={italic:true,size:10,color:{argb:MUTE}};c.alignment={vertical:'middle',indent:1};ws.getRow(3).height=18;
+  }
+  function sectionHeader(ws,title,span){
+    const r=ws.addRow([]);ws.mergeCells(r.number,1,r.number,span);const c=ws.getCell(r.number,1);
+    c.value=title;c.font={bold:true,size:11,color:{argb:BRAND_DK}};fill(c,SOFT);c.alignment={vertical:'middle',indent:1};r.height=20;
+  }
+  function headerRow(ws,vals){
+    const r=ws.addRow(vals);r.eachCell(c=>{c.font={bold:true,color:{argb:WHITE},size:11};fill(c,BRAND);c.alignment={vertical:'middle'};boxAll(c);});r.height=20;return r;
+  }
+
+  // ===== Summary sheet =====
+  const ws=wb.addWorksheet('Summary');
+  ws.columns=[{width:30},{width:18},{width:16},{width:18}];
+  titleBlock(ws,trip.name+'   ·   expense summary',4);
+  ws.addRow([]);
+  const k=ws.addRow(['Total spent',total,'Members',members.length]);k.height=22;
+  ws.getCell(k.number,1).font={bold:true,size:10,color:{argb:MUTE}};
+  const tv=ws.getCell(k.number,2);tv.numFmt=MONEY;tv.font={bold:true,size:14,color:{argb:BRAND}};
+  ws.getCell(k.number,3).font={bold:true,size:10,color:{argb:MUTE}};
+  ws.getCell(k.number,4).font={bold:true,size:14,color:{argb:INK}};
+  ws.addRow([]);
+
+  sectionHeader(ws,'MEMBERS & BALANCES',4);
+  headerRow(ws,['Member','Contribution %','Total paid','Net balance']);
+  members.forEach((m,i)=>{
+    const v=net[m.id]||0;const r=ws.addRow([m.name,Number(m.percent)||0,paid[m.id]||0,Math.round(v*100)/100]);
+    r.getCell(2).numFmt=PCT;r.getCell(3).numFmt=MONEY;r.getCell(4).numFmt=MONEY;
+    r.getCell(4).font={bold:true,color:{argb:Math.abs(v)<0.005?MUTE:(v>0?POS:NEG)}};
+    if(i%2===1)r.eachCell(c=>fill(c,ZEBRA));
+    r.eachCell(c=>boxAll(c));
+  });
+  const tot=ws.addRow(['Total',members.reduce((s,m)=>s+(Number(m.percent)||0),0),total,0]);
+  tot.getCell(2).numFmt=PCT;tot.getCell(3).numFmt=MONEY;tot.getCell(4).value=null;
+  tot.eachCell(c=>{c.font={bold:true,color:{argb:INK}};fill(c,SOFT);boxAll(c);});
+  ws.addRow([]);
+  const note=ws.addRow(['Net balance — positive = is owed, negative = owes.']);
+  ws.mergeCells(note.number,1,note.number,4);ws.getCell(note.number,1).font={italic:true,size:9,color:{argb:MUTE}};
+  ws.addRow([]);
+
+  sectionHeader(ws,'WHO OWES WHOM',4);
+  if(transfers.length){
+    headerRow(ws,['From','To','Amount']);
+    transfers.forEach((t,i)=>{
+      const r=ws.addRow([nameOf(t.from),nameOf(t.to),Math.round(t.amount*100)/100]);
+      r.getCell(3).numFmt=MONEY;r.getCell(3).font={bold:true,color:{argb:POS}};
+      if(i%2===1)[1,2,3].forEach(ci=>fill(r.getCell(ci),ZEBRA));
+      [1,2,3].forEach(ci=>boxAll(r.getCell(ci)));
+    });
+  }else{
+    const r=ws.addRow(['All settled up — no outstanding balances.']);
+    ws.mergeCells(r.number,1,r.number,4);r.getCell(1).font={bold:true,color:{argb:POS}};
+  }
+  ws.views=[{state:'frozen',ySplit:3,showGridLines:false}];
+
+  // ===== Expenses sheet =====
+  const es=wb.addWorksheet('Expenses');
+  es.columns=[{width:13},{width:34},{width:15},{width:18},{width:16}];
+  titleBlock(es,trip.name+'   ·   all expenses',5);
+  es.addRow([]);
+  const eh=headerRow(es,['Date','Description','Category','Paid by','Amount']);
+  expenses.slice().sort((a,b)=>((a.spent_on||'')<(b.spent_on||'')?1:-1)).forEach((e,i)=>{
+    const r=es.addRow([e.spent_on,e.description,e.category||'—',nameOf(e.paid_by),Math.round(Number(e.amount)*100)/100]);
+    r.getCell(5).numFmt=MONEY;
+    if(i%2===1)r.eachCell(c=>fill(c,ZEBRA));
+    r.eachCell(c=>boxAll(c));
+  });
+  const er=es.addRow(['Total','','','',Math.round(total*100)/100]);
+  es.mergeCells(er.number,1,er.number,4);
+  er.getCell(1).value='Total';er.getCell(1).font={bold:true,color:{argb:INK}};er.getCell(1).alignment={horizontal:'right',indent:1};
+  er.getCell(5).numFmt=MONEY;er.getCell(5).font={bold:true,color:{argb:BRAND}};
+  [1,5].forEach(ci=>{fill(er.getCell(ci),SOFT);});[1,2,3,4,5].forEach(ci=>boxAll(er.getCell(ci)));
+  es.views=[{state:'frozen',ySplit:eh.number,showGridLines:false}];
+
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const u=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=u;a.download=trip.name.replace(/[^a-z0-9]+/gi,'_')+'_summary_'+today+'.xlsx';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);
 }
 
 function SummaryTab({trip,members,expenses,settlements}){
