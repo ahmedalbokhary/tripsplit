@@ -24,8 +24,8 @@
       if(!el){ el=document.createElement('div'); el.id='bt-ticker'; document.body.appendChild(el); }
       var track=document.createElement('div'); track.className='bt-track';
       track.textContent='Recent:     '+items.join('       \u2022       ')+'       \u2022       ';
-      el.innerHTML=''; el.appendChild(track); var x=document.createElement('div'); x.textContent='\u00D7'; x.style.cssText='position:absolute;right:6px;top:0;height:34px;line-height:34px;font-size:20px;background:#0b7a57;padding:0 8px;cursor:pointer;z-index:1;'; el.appendChild(x); setTimeout(function(){x.onclick=function(ev){ev.stopPropagation();el.style.display='none';};},1500); el.style.display='block';
-      clearTimeout(el._t); el._t=setTimeout(function(){el.style.display='none';},30000);
+      el.innerHTML=''; el.appendChild(track); var x=document.createElement('div'); x.textContent='\u00D7'; x.style.cssText='position:absolute;right:6px;top:0;height:34px;line-height:34px;font-size:20px;background:#0b7a57;padding:0 8px;cursor:pointer;z-index:1;'; el.appendChild(x); setTimeout(function(){x.onclick=function(ev){ev.stopPropagation();el.__show=false;el.style.display='none';};},1500); el.__show=true; el.style.display='block'; clearInterval(el._iv); el._iv=setInterval(function(){if(el.__show)el.style.display='block';else clearInterval(el._iv);},300);
+      clearTimeout(el._t); el._t=setTimeout(function(){el.__show=false;el.style.display='none';},30000);
     }catch(e){}
   }
   function storedSession(){
