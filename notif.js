@@ -21,10 +21,10 @@
     try{
       if(!items||!items.length)return; injectStyle();
       var el=document.getElementById('bt-ticker');
-      if(!el){ el=document.createElement('div'); el.id='bt-ticker'; el.onclick=function(){el.style.display='none';}; document.body.appendChild(el); }
+      if(!el){ el=document.createElement('div'); el.id='bt-ticker'; document.body.appendChild(el); }
       var track=document.createElement('div'); track.className='bt-track';
       track.textContent='Recent:     '+items.join('       \u2022       ')+'       \u2022       ';
-      el.innerHTML=''; el.appendChild(track); el.style.display='block';
+      el.innerHTML=''; el.appendChild(track); var x=document.createElement('div'); x.textContent='\u00D7'; x.style.cssText='position:absolute;right:6px;top:0;height:34px;line-height:34px;font-size:20px;background:#0b7a57;padding:0 8px;cursor:pointer;z-index:1;'; x.onclick=function(ev){ev.stopPropagation();el.style.display='none';}; el.appendChild(x); el.style.display='block';
       clearTimeout(el._t); el._t=setTimeout(function(){el.style.display='none';},30000);
     }catch(e){}
   }
