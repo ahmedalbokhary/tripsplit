@@ -172,7 +172,7 @@ async function ensureSession(){
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
 
 const { useState, useEffect, useCallback } = React;
-const COLORS = ['#13c08a','#0ea5e9','#f43f5e','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
+const COLORS = ['#1e6fd9','#0ea5e9','#f43f5e','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#f97316'];
 const CATEGORIES = ['Food','Stay','Transport','Activities','Shopping','Other'];
 
 const KNOWN='tripsplit.trips';
@@ -278,7 +278,7 @@ function HomeScreen(){
         {!loading && !err && trips.length>0 && <div className="card">
           {trips.map(t=>(
             <div className="row" key={t.id} onClick={()=>goTrip(t.id)}>
-              <div className="avatar" style={{background:'linear-gradient(135deg,#16c79a,#0b7a57)'}}>{initials(t.name)}</div>
+              <div className="avatar" style={{background:'linear-gradient(135deg,#38bdf8,#1e6fd9)'}}>{initials(t.name)}</div>
               <div className="grow"><div className="title">{t.name}</div><div className="meta"><Ic d={I.users} sm/>{t.memberCount} · <Ic d={I.receipt} sm/>{t.expenseCount}</div></div>
               {t.myNet!==null && Math.abs(t.myNet)>0.005 && <span className={'pill '+(t.myNet>0?'pos':'neg')}>{t.myNet>0?'+':'−'}{formatMoney(Math.abs(t.myNet),t.currency)}</span>}
               <Ic d={I.arrowr} sm/>
