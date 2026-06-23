@@ -1,7 +1,7 @@
 (function(){
   var U='https://hisdnziwdlegxririysw.supabase.co';
   var K='sb_publishable__pb6Mhd4LtoFtGm2rChzRg_4vJR4KKt';
-  var EMER='#0b7a57';
+  var EMER='#1e6fd9';
   var BELL='<svg viewBox="0 0 24 24"><path d="M12 22a2.4 2.4 0 0 0 2.4-2h-4.8a2.4 2.4 0 0 0 2.4 2zm6-6v-5a6 6 0 0 0-5-5.91V4a1 1 0 1 0-2 0v1.09A6 6 0 0 0 6 11v5l-1.7 1.7A1 1 0 0 0 5 19h14a1 1 0 0 0 .7-1.71L18 16z"/></svg>';
   var RCPT='<svg viewBox="0 0 24 24"><path d="M6 2a1 1 0 0 0-1 1v18l2-1 2 1 2-1 2 1 2-1 2 1V3a1 1 0 0 0-1-1H6zm2 5h8v2H8V7zm0 4h8v2H8v-2z"/></svg>';
   function injectStyle(){
