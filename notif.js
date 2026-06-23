@@ -37,7 +37,7 @@
       }catch(err){}
     }
     (async function(){
-      try{var g=await sb.auth.getSession(); if(g&&g.data)setUid(g.data.session);}catch(_){}
+      var tok=null,uid=null;for(var _i=0;_i<40 && !tok;_i++){try{for(var j=0;j<localStorage.length;j++){var kk=localStorage.key(j);if(kk&&kk.indexOf("-auth-token")>-1){var vv=JSON.parse(localStorage.getItem(kk));var ssn=(vv&&vv.access_token)?vv:(vv&&vv.currentSession);if(ssn&&ssn.access_token){tok=ssn.access_token;uid=(ssn.user&&ssn.user.id)||null;}}}}catch(_){}if(!tok)await new Promise(function(rr){setTimeout(rr,500);});}if(tok){myUid=uid;try{sb.realtime.setAuth(tok);}catch(_){}}
       sb.auth.onAuthStateChange(function(_e,sess){setUid(sess);});
       sb.channel('bt-notif').on('postgres_changes',{event:'INSERT',schema:'public',table:'expenses'},onIns).subscribe();
     })();
