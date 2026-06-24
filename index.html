@@ -14,8 +14,8 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Bokha tripsplit" />
-<link rel="apple-touch-icon" href="https://hisdnziwdlegxririysw.supabase.co/storage/v1/object/public/app/icon-mint-192.png" />
-<link rel="icon" type="image/png" href="https://hisdnziwdlegxririysw.supabase.co/storage/v1/object/public/app/icon-mint-192.png" />
+<link rel="apple-touch-icon" href="./icon-ocean-192.png" />
+<link rel="icon" type="image/png" href="./icon-ocean-192.png" />
 <link rel="manifest" href="manifest.webmanifest" /><script src="notif.js?v=8" defer></script>
 <style>
 :root{
@@ -541,7 +541,7 @@ async function exportSummaryExcel(trip,members,expenses,settlements,onState){
   const today=new Date().toISOString().slice(0,10);
   const MONEY='"'+cur+'" #,##0.00';
   const PCT='0.0"%"';
-  const BRAND='FF0B7A57',BRAND_DK='FF075C43',SOFT='FFE9F6F0',MUTE='FF6B7772',GRID='FFDDE5E1',ZEBRA='FFF5F8F6',POS='FF0B7A57',NEG='FFC2410C',WHITE='FFFFFFFF',INK='FF142019';
+  const BRAND='FF1E6FD9',BRAND_DK='FF14529E',SOFT='FFE7F0FC',MUTE='FF6B7772',GRID='FFDDE5E1',ZEBRA='FFF5F8F6',POS='FF1E6FD9',NEG='FFC2410C',WHITE='FFFFFFFF',INK='FF142019';
   const wb=new ExcelJS.Workbook();wb.creator='Bokha tripsplit';wb.created=new Date();
   const thin=()=>({style:'thin',color:{argb:GRID}});
   const boxAll=c=>{c.border={top:thin(),left:thin(),bottom:thin(),right:thin()};};
@@ -606,12 +606,12 @@ async function exportSummaryExcel(trip,members,expenses,settlements,onState){
 
   // ===== Expenses sheet =====
   const es=wb.addWorksheet('Expenses');
-  es.columns=[{width:13},{width:34},{width:15},{width:18},{width:16}];
+  es.columns=[{width:13},{width:34},{width:15},{width:18},{width:16},{width:12}];
   titleBlock(es,trip.name+'   ·   all expenses',5);
   es.addRow([]);
-  const eh=headerRow(es,['Date','Description','Category','Paid by','Amount']);
+  const eh=headerRow(es,['Date','Description','Category','Paid by','Amount','Time']);
   expenses.slice().sort((a,b)=>((a.spent_on||'')<(b.spent_on||'')?1:-1)).forEach((e,i)=>{
-    const r=es.addRow([e.spent_on,e.description,e.category||'—',nameOf(e.paid_by),Math.round(Number(e.amount)*100)/100]);
+    const r=es.addRow([e.spent_on,e.description,e.category||'—',nameOf(e.paid_by),Math.round(Number(e.amount)*100)/100,(e.created_at?new Date(e.created_at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'')]);
     r.getCell(5).numFmt=MONEY;
     if(i%2===1)r.eachCell(c=>fill(c,ZEBRA));
     r.eachCell(c=>boxAll(c));
@@ -622,6 +622,48 @@ async function exportSummaryExcel(trip,members,expenses,settlements,onState){
   er.getCell(5).numFmt=MONEY;er.getCell(5).font={bold:true,color:{argb:BRAND}};
   [1,5].forEach(ci=>{fill(er.getCell(ci),SOFT);});[1,2,3,4,5].forEach(ci=>boxAll(er.getCell(ci)));
   es.views=[{state:'frozen',ySplit:eh.number,showGridLines:false}];
+
+  // ===== Members & % sheet =====
+  var wsm=wb.addWorksheet('Members & %');
+  wsm.columns=[{width:26},{width:16},{width:18},{width:18},{width:20}];
+  titleBlock(wsm, trip.name+'   members & contribution', 5);
+  wsm.addRow([]);
+  headerRow(wsm,['Member','Contribution %','Total paid','Share of total','Net']);
+  members.forEach(function(m,i){
+    var share=total*(Number(m.percent||0)/100);
+    var v=net[m.id]||0;
+    var r=wsm.addRow([m.name, Number(m.percent||0), Math.round((paid[m.id]||0)*100)/100, Math.round(share*100)/100, Math.round(v*100)/100]);
+    r.getCell(2).numFmt=PCT; r.getCell(3).numFmt=MONEY; r.getCell(4).numFmt=MONEY; r.getCell(5).numFmt=MONEY;
+    r.getCell(5).font={bold:true,color:{argb:(Math.abs(v)<0.005?MUTE:(v>0?POS:NEG))}};
+    if(i%2===1)r.eachCell(function(c){fill(c,ZEBRA);});
+    r.eachCell(function(c){boxAll(c);});
+  });
+  // ===== Balances sheet =====
+  var wsb=wb.addWorksheet('Balances');
+  wsb.columns=[{width:26},{width:26},{width:18},{width:14}];
+  titleBlock(wsb, trip.name+'   balances & settle-up', 4);
+  wsb.addRow([]);
+  var s1=wsb.addRow(['Net per person']); s1.getCell(1).font={bold:true,size:12,color:{argb:BRAND}};
+  headerRow(wsb,['Member','Status','Amount','']);
+  members.forEach(function(m,i){
+    var v=net[m.id]||0; var st=Math.abs(v)<0.005?'settled':(v>0?'gets back':'owes');
+    var r=wsb.addRow([m.name, st, Math.round(Math.abs(v)*100)/100, '']);
+    r.getCell(3).numFmt=MONEY;
+    r.getCell(2).font={bold:true,color:{argb:(Math.abs(v)<0.005?MUTE:(v>0?POS:NEG))}};
+    if(i%2===1)r.eachCell(function(c){fill(c,ZEBRA);});
+    r.eachCell(function(c){boxAll(c);});
+  });
+  wsb.addRow([]);
+  var s2=wsb.addRow(['Who owes whom']); s2.getCell(1).font={bold:true,size:12,color:{argb:BRAND}};
+  headerRow(wsb,['From (pays)','To (receives)','Amount','Status']);
+  if(transfers.length){
+    transfers.forEach(function(t,i){
+      var r=wsb.addRow([nameOf(t.from), nameOf(t.to), Math.round(t.amount*100)/100, 'unsettled']);
+      r.getCell(3).numFmt=MONEY; r.getCell(4).font={color:{argb:NEG}};
+      if(i%2===1)r.eachCell(function(c){fill(c,ZEBRA);});
+      r.eachCell(function(c){boxAll(c);});
+    });
+  } else { var r0=wsb.addRow(['All settled up - nobody owes anything.','','','']); r0.getCell(1).font={italic:true,color:{argb:MUTE}}; }
 
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
