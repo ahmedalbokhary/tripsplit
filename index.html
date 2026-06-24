@@ -630,6 +630,43 @@ async function exportSummaryExcel(trip,members,expenses,settlements,onState){
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);
 }
 
+function btActivity(expenses,settlements,members,cur){
+  try{
+    var ex=document.getElementById('bt-md'); if(ex)ex.remove();
+    var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});};
+    var nameOf=function(id){var x=(members||[]).find(function(z){return z.id===id;});return x?x.name:'?';};
+    var money=function(x){return formatMoney(x,cur);};
+    var items=[];
+    (expenses||[]).forEach(function(e){items.push({t:'e',when:String(e.created_at||e.spent_on||''),ct:e.created_at,date:e.spent_on,who:e.paid_by,amount:Number(e.amount||0),desc:e.description||'Expense',cat:e.category||''});});
+    (settlements||[]).forEach(function(s){items.push({t:'s',when:String(s.created_at||''),ct:s.created_at,from:s.from_member,to:s.to_member,amount:Number(s.amount||0)});});
+    items.sort(function(a,b){return b.when.localeCompare(a.when);});
+    var fmt=function(it){ if(it.ct){return new Date(it.ct).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});} if(it.date){try{return new Date(it.date+'T00:00:00').toLocaleDateString([],{month:'short',day:'numeric'});}catch(e){return it.date;}} return ''; };
+    var rows='';
+    items.forEach(function(it){
+      if(it.t==='e'){
+        rows+='<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px solid var(--line);">'
+          +'<div style="width:30px;height:30px;border-radius:9px;background:var(--pos-soft);color:var(--pos);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:15px;font-weight:700;">+</div>'
+          +'<div style="flex:1;min-width:0;"><div style="font-weight:600;color:var(--ink);font-size:14px;">'+esc(nameOf(it.who))+' <span style="color:var(--muted);font-weight:500;">paid</span></div><div style="color:var(--muted);font-size:12px;">'+esc(it.desc)+(it.cat?(' \u00b7 '+esc(it.cat)):'')+' \u00b7 '+fmt(it)+'</div></div>'
+          +'<div style="font-weight:700;color:var(--ink);white-space:nowrap;">'+money(it.amount)+'</div></div>';
+      } else {
+        rows+='<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px solid var(--line);">'
+          +'<div style="width:30px;height:30px;border-radius:9px;background:var(--pos-soft);color:var(--pos);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:15px;">\u2713</div>'
+          +'<div style="flex:1;min-width:0;"><div style="font-weight:600;color:var(--ink);font-size:14px;">'+esc(nameOf(it.from))+' <span style="color:var(--muted);font-weight:500;">paid</span> '+esc(nameOf(it.to))+'</div><div style="color:var(--muted);font-size:12px;">Settlement \u00b7 '+fmt(it)+'</div></div>'
+          +'<div style="font-weight:700;color:var(--pos);white-space:nowrap;">'+money(it.amount)+'</div></div>';
+      }
+    });
+    if(!rows)rows='<div style="color:var(--muted);font-size:13px;padding:10px 0;">No activity yet.</div>';
+    var ov=document.createElement('div');ov.id='bt-md';
+    ov.style.cssText='position:fixed;inset:0;z-index:2147483600;background:rgba(8,20,35,.46);display:flex;align-items:flex-end;justify-content:center;';
+    ov.innerHTML='<div style="background:var(--card);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:16px 16px 26px;max-height:84vh;overflow:auto;box-shadow:0 -10px 40px rgba(0,0,0,.3);">'
+      +'<div style="display:flex;align-items:center;gap:11px;margin-bottom:8px;"><div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:18px;color:var(--ink);">Activity timeline</div><div style="font-size:12px;color:var(--muted);">'+items.length+' transactions</div></div><button id="bt-md-x" style="border:none;background:var(--pos-soft);color:var(--ink);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1;">\u00d7</button></div>'
+      +rows+'</div>';
+    ov.addEventListener('click',function(ev){if(ev.target===ov)ov.remove();});
+    document.body.appendChild(ov);
+    var xb=document.getElementById('bt-md-x');if(xb)xb.onclick=function(){ov.remove();};
+  }catch(err){alert('Activity error: '+err.message);}
+}
+
 function SummaryTab({trip,members,expenses,settlements}){
   const [exporting,setExporting]=useState(false);
   const cur=trip.currency||'EGP';
@@ -640,6 +677,7 @@ function SummaryTab({trip,members,expenses,settlements}){
   const byPayer={};members.forEach(m=>byPayer[m.id]=0);expenses.forEach(e=>{if(byPayer[e.paid_by]!==undefined)byPayer[e.paid_by]+=Number(e.amount);});
   return (<React.Fragment>
     <button className="btn primary" disabled={exporting} onClick={()=>exportSummaryExcel(trip,members,expenses,settlements,(st)=>setExporting(st==='loading'))}><Ic d={I.download}/> {exporting?'Preparing…':'Download Excel summary'}</button>
+    <button className="btn outline" style={{marginTop:8}} onClick={()=>btActivity(expenses,settlements,members,cur)}><Ic d={I.calendar} sm/> Activity timeline</button>
     <div className="section"><Ic d={I.chart} sm/> Spending by category</div>
     <div className="card" style={{padding:'4px 0'}}>
       {cats.map(([c,amt])=>{const cat=CAT[c]||CAT.Other;const pct=total?Math.round(amt/total*100):0;return (
