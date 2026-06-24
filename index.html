@@ -438,6 +438,53 @@ function WhoAmI({members,tripId,onPick}){
   </div>);
 }
 
+function btMemberDetail(m,members,expenses,settlements,net,cur){
+  try{
+    var ex=document.getElementById('bt-md'); if(ex)ex.remove();
+    var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});};
+    var nameOf=function(id){var x=members.find(function(z){return z.id===id;});return x?x.name:'?';};
+    var money=function(x){return formatMoney(x,cur);};
+    var v=net[m.id]||0;
+    var paid=expenses.filter(function(e){return e.paid_by===m.id;}).reduce(function(s,e){return s+Number(e.amount||0);},0);
+    var totalAll=expenses.reduce(function(s,e){return s+Number(e.amount||0);},0);
+    var share=totalAll*(Number(m.percent||0)/100);
+    var trs=simplifyDebts(net);
+    var owes=trs.filter(function(t){return t.from===m.id;});
+    var owed=trs.filter(function(t){return t.to===m.id;});
+    var mine=expenses.filter(function(e){return e.paid_by===m.id;}).slice().sort(function(a,b){return String(b.spent_on||'').localeCompare(String(a.spent_on||''));});
+    var rows=mine.length?mine.map(function(e){
+      var tm=e.created_at?(' \u00b7 '+new Date(e.created_at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})):'';
+      return '<div style="display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);"><div style="min-width:0;"><div style="font-weight:600;color:var(--ink);font-size:14px;">'+esc(e.description||'Expense')+'</div><div style="color:var(--muted);font-size:12px;">'+esc(e.category||'')+tm+'</div></div><div style="font-weight:700;color:var(--ink);white-space:nowrap;">'+money(Number(e.amount||0))+'</div></div>';
+    }).join(''):'<div style="color:var(--muted);font-size:13px;padding:8px 0;">No expenses paid yet.</div>';
+    var debt='';
+    owes.forEach(function(t){debt+='<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:var(--ink);">Pays '+esc(nameOf(t.to))+'</span><span style="font-weight:700;color:var(--neg);">'+money(t.amount)+'</span></div>';});
+    owed.forEach(function(t){debt+='<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:var(--ink);">Gets from '+esc(nameOf(t.from))+'</span><span style="font-weight:700;color:var(--pos);">'+money(t.amount)+'</span></div>';});
+    if(!debt)debt='<div style="color:var(--muted);font-size:13px;">All settled up.</div>';
+    var netLabel=Math.abs(v)<0.005?'Settled':(v>0?'Gets back '+money(v):'Owes '+money(-v));
+    var netColor=Math.abs(v)<0.005?'var(--muted)':(v>0?'var(--pos)':'var(--neg)');
+    var ini=String(m.name||'?').trim().slice(0,2).toUpperCase();
+    var ov=document.createElement('div');ov.id='bt-md';
+    ov.style.cssText='position:fixed;inset:0;z-index:2147483600;background:rgba(8,20,35,.46);display:flex;align-items:flex-end;justify-content:center;';
+    ov.innerHTML='<div style="background:var(--card);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:16px 16px 26px;max-height:84vh;overflow:auto;box-shadow:0 -10px 40px rgba(0,0,0,.3);">'
+      +'<div style="display:flex;align-items:center;gap:11px;margin-bottom:14px;">'
+        +'<div style="width:42px;height:42px;border-radius:13px;background:'+avGrad(m.color)+';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex:0 0 auto;">'+esc(ini)+'</div>'
+        +'<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:18px;color:var(--ink);">'+esc(m.name||'')+'</div><div style="font-size:12px;color:var(--muted);">'+Number(m.percent||0)+'% share</div></div>'
+        +'<button id="bt-md-x" style="border:none;background:var(--pos-soft);color:var(--ink);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1;">\u00d7</button>'
+      +'</div>'
+      +'<div style="display:flex;gap:8px;margin-bottom:16px;">'
+        +'<div style="flex:1;background:var(--pos-soft);border-radius:13px;padding:10px;text-align:center;"><div style="font-size:11px;color:var(--muted);">Paid</div><div style="font-weight:700;font-size:15px;color:var(--ink);">'+money(paid)+'</div></div>'
+        +'<div style="flex:1;background:var(--pos-soft);border-radius:13px;padding:10px;text-align:center;"><div style="font-size:11px;color:var(--muted);">Share</div><div style="font-weight:700;font-size:15px;color:var(--ink);">'+money(share)+'</div></div>'
+        +'<div style="flex:1;background:var(--pos-soft);border-radius:13px;padding:10px;text-align:center;"><div style="font-size:11px;color:var(--muted);">Net</div><div style="font-weight:700;font-size:14px;color:'+netColor+';">'+netLabel+'</div></div>'
+      +'</div>'
+      +'<div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;">Settlement</div>'+debt
+      +'<div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:16px 0 2px;">Expenses paid ('+mine.length+')</div>'+rows
+      +'</div>';
+    ov.addEventListener('click',function(ev){if(ev.target===ov)ov.remove();});
+    document.body.appendChild(ov);
+    var xb=document.getElementById('bt-md-x'); if(xb)xb.onclick=function(){ov.remove();};
+  }catch(err){alert('Member detail error: '+err.message);}
+}
+
 function BalancesTab({trip,members,expenses,settlements,onChange}){
   const cur=trip.currency||'EGP';const net=computeBalances(members,expenses,settlements);const transfers=simplifyDebts(net);
   const nameOf=(id)=>(members.find(m=>m.id===id)||{}).name||'?';const colorOf=(id)=>(members.find(m=>m.id===id)||{}).color||'#888';const me=getMe(trip.id);
@@ -456,7 +503,7 @@ function BalancesTab({trip,members,expenses,settlements,onChange}){
         </div>}
     <div className="section"><Ic d={I.scale} sm/> Net per person</div>
     <div className="card">{members.map(m=>{const v=net[m.id]||0;return (
-      <div className="row" key={m.id} style={{cursor:'default'}}>
+      <div className="row" key={m.id} style={{cursor:'pointer'}} onClick={()=>btMemberDetail(m,members,expenses,settlements,net,cur)}>
         <div className="avatar sm" style={{background:avGrad(m.color)}}>{initials(m.name)}</div>
         <div className="grow"><div className="title">{m.name}{m.id===me?' · you':''}</div><div className="meta">{Number(m.percent)}% share</div></div>
         {Math.abs(v)<0.005?<span className="pill flat">settled</span>:<span className={'pill '+(v>0?'pos':'neg')}>{v>0?'+':'−'}{formatMoney(Math.abs(v),cur)}</span>}
