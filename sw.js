@@ -1,4 +1,4 @@
-const CACHE = 'bokha-tripsplit-v3';
+const CACHE = 'bokha-tripsplit-v4';
 const SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
@@ -53,4 +53,39 @@ self.addEventListener('fetch', (e) => {
       return cached || net;
     })
   );
+});
+
+
+// ===== Web Push: phone notifications + app icon badge =====
+self.addEventListener('push', function(e){
+  var data={};
+  try{ data = e.data ? e.data.json() : {}; }catch(_){ try{ data={ body: e.data && e.data.text() }; }catch(__){} }
+  var title = data.title || 'Bokha tripsplit';
+  var body  = data.body  || 'New activity in your trip';
+  var tag   = data.tag   || ('bt-'+Date.now());
+  var count = Number(data.count) || 0;
+  e.waitUntil((async function(){
+    await self.registration.showNotification(title, {
+      body: body, tag: tag, renotify: true,
+      icon: './icon-ocean-192.png', badge: './icon-ocean-192.png',
+      data: { url: data.url || './index.html' }
+    });
+    try{ if (self.registration && navigator.setAppBadge){ if(count>0){ await navigator.setAppBadge(count); } else { await navigator.setAppBadge(); } } }catch(_){}
+  })());
+});
+
+self.addEventListener('notificationclick', function(e){
+  e.notification.close();
+  var url = (e.notification.data && e.notification.data.url) || './index.html';
+  e.waitUntil((async function(){
+    try{ if(navigator.clearAppBadge) await navigator.clearAppBadge(); }catch(_){}
+    var all = await self.clients.matchAll({ type:'window', includeUncontrolled:true });
+    for (var i=0;i<all.length;i++){ var c=all[i]; if('focus' in c){ try{ await c.focus(); return; }catch(_){} } }
+    if (self.clients.openWindow) return self.clients.openWindow(url);
+  })());
+});
+
+// allow the page to clear the icon badge when the user reads notifications
+self.addEventListener('message', function(e){
+  if(e.data === 'bt-clear-badge'){ try{ if(navigator.clearAppBadge) navigator.clearAppBadge(); }catch(_){} }
 });
