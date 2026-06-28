@@ -48,4 +48,37 @@
     initial();
   }
   start();
-})();
+
+
+  // ===== Web Push subscribe + app-icon badge (added) =====
+  (function(){
+    function urlB64(b){ var p='='.repeat((4-b.length%4)%4); var x=(b+p).replace(/-/g,'+').replace(/_/g,'/'); var r=atob(x); var a=new Uint8Array(r.length); for(var i=0;i<r.length;i++)a[i]=r.charCodeAt(i); return a; }
+    var VAPID='BDMR86r-YtiePPIWXCU9nTSo4W3-KjBCIq17kMx-MqvDSl4R_87vvTODQ4tjE6UcNVKFw9kkAU9jOzFvs74T63s';
+    function clearBadge(){ try{ if(navigator.clearAppBadge) navigator.clearAppBadge(); }catch(_){} try{ if(navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage('bt-clear-badge'); }catch(_){} }
+    window.addEventListener('focus', clearBadge);
+    document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible') clearBadge(); });
+    var tries=0;
+    var iv=setInterval(function(){
+      tries++;
+      if(typeof myUid!=='undefined' && myUid){
+        clearInterval(iv);
+        (async function(){
+          try{
+            if(!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+            var perm=Notification.permission;
+            if(perm==='default'){ try{ perm=await Notification.requestPermission(); }catch(_){ return; } }
+            if(perm!=='granted') return;
+            var reg=await navigator.serviceWorker.ready;
+            var sub=await reg.pushManager.getSubscription();
+            if(!sub){ sub=await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: urlB64(VAPID) }); }
+            var jk=sub.toJSON().keys;
+            await sb.from('push_subscriptions').upsert({ endpoint: sub.endpoint, uid: myUid, p256dh: jk.p256dh, auth: jk.auth, ua: navigator.userAgent }, { onConflict:'endpoint' });
+            clearBadge();
+          }catch(e){}
+        })();
+      }
+      if(tries>40) clearInterval(iv);
+    }, 1500);
+  })();
+
+  })();
